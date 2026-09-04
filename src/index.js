@@ -32,7 +32,6 @@ function checksumFromAsset(asset) {
 async function resolveSource(source, env) {
   const response = await fetch(`${GITHUB_API}/repos/${source.repo}/releases?per_page=30`, {
     headers: githubHeaders(env),
-    cf: { cacheTtl: 60, cacheEverything: true },
   });
 
   if (!response.ok) {
@@ -85,7 +84,7 @@ function jsonResponse(body, status = 200) {
     headers: {
       "content-type": "application/json; charset=utf-8",
       "access-control-allow-origin": "*",
-      "cache-control": "public, max-age=60, s-maxage=60, stale-while-revalidate=300",
+      "cache-control": "no-store",
     },
   });
 }
