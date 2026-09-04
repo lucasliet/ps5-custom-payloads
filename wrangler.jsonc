@@ -1,0 +1,6 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ps5-custom-payloads",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-03"
+}
