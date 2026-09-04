@@ -1,0 +1,12 @@
+{
+  "name": "ps5-custom-payloads",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.33.1"
+  }
+}
