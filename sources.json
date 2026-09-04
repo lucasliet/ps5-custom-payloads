@@ -1,0 +1,33 @@
+{
+  "name": "Lucas PS5 Payloads",
+  "sources": [
+    {
+      "name": "Pegasus DL",
+      "repo": "pegasus-ps5/pegasus-dl",
+      "asset": "pegasus_dl.elf",
+      "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
+      "category": "Downloads"
+    },
+    {
+      "name": "OnionHEN",
+      "repo": "aydencharles/onionHEN",
+      "asset": "OnionHEN.elf",
+      "description": "All-in-one PS5 HEN and Toolbox with payload management, cheats, overlays and background services.",
+      "category": "HEN"
+    },
+    {
+      "name": "Prospero Manager",
+      "repo": "notmaj0r/ProsperoMgr",
+      "asset": "ProsperoMgr.elf",
+      "description": "Web-based all-in-one PS5 manager for files, payloads, PKGs, saves, processes, thermal controls and more.",
+      "category": "Management"
+    },
+    {
+      "name": "Game Compressor",
+      "repo": "juma-sayeh/PS5-Game-Compressor",
+      "asset": "game-compressor.elf",
+      "description": "Standalone PS5 payload for compressing, unpacking, validating, repairing and moving ShadowMountPlus-mounted games.",
+      "category": "Storage"
+    }
+  ]
+}
