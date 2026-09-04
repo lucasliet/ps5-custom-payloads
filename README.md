@@ -14,7 +14,7 @@ This repository tracks the latest GitHub release assets for:
 There are two delivery modes:
 
 1. **Dynamic endpoint (recommended)** — a Cloudflare Worker builds the repository JSON at request time from the GitHub Releases API. Every request resolves the newest non-draft release containing the configured ELF asset.
-2. **Static fallback** — `payloads.json` is regenerated once per day by GitHub Actions and can be served by GitHub Pages.
+2. **Static fallback** — `payloads.json` is regenerated once per day by GitHub Actions, committed to `main`, and served directly by GitHub Pages configured as **Deploy from a branch → main → /(root)**.
 
 GitHub Pages itself is static, so it cannot query the Releases API when `payloads.json` is requested. The Worker exists specifically to provide request-time freshness.
 
@@ -45,9 +45,15 @@ Generate locally:
 npm run generate
 ```
 
-The `Update static catalog` GitHub Action runs once per day and commits `payloads.json` only when the resolved releases change.
+The `Update static catalog` GitHub Action runs once per day at `03:17 UTC` and commits `payloads.json` only when the resolved releases change.
 
-The `Deploy GitHub Pages fallback` workflow publishes `payloads.json` plus a minimal landing page through GitHub Pages.
+GitHub Pages should be configured as:
+
+- Source: `Deploy from a branch`
+- Branch: `main`
+- Folder: `/(root)`
+
+No separate Pages deployment workflow is required. When the daily Action updates `payloads.json` on `main`, the branch-based Pages deployment publishes that new file automatically.
 
 ## Notes
 
