@@ -5,7 +5,7 @@ Custom payload repository for [Payload Manager](https://github.com/itsPLK/ps5-pa
 Live endpoints:
 
 - Static (GitHub Pages): `https://lucasliet.github.io/ps5-custom-payloads/payloads.json`
-- Dynamic (Cloudflare Worker): `/` and `/payloads.json` on the deployed Worker
+- Dynamic (FastAPI Cloud): `/` and `/payloads.json` on the deployed app
 
 ## Tracked payloads
 
@@ -22,7 +22,7 @@ Live endpoints:
 `sources.json` is the single source of truth: what to track and the metadata shown in the app. Two generators read it and must stay logically identical:
 
 1. **Static catalog (primary)** — `scripts/generate.mjs` (`npm run generate`) resolves every source against the GitHub Releases API and writes `payloads.json`. A GitHub Action regenerates it daily at `03:17 UTC` and commits only when the result changes. GitHub Pages serves the file from `main` / `/(root)` (branch-based deployment, no Pages workflow needed).
-2. **Dynamic endpoint** — `src/index.js` is a Cloudflare Worker that builds the same catalog at request time, so every fetch resolves the newest release without waiting for the daily Action. GitHub Pages is static and cannot query the API per request; the Worker exists for request-time freshness.
+2. **Dynamic endpoint** — `main.py` is a FastAPI app, deployed on [FastAPI Cloud](https://fastapicloud.com), that builds the same catalog at request time, so every fetch resolves the newest release without waiting for the daily Action. GitHub Pages is static and cannot query the API per request; the app exists for request-time freshness. It also serves FastAPI's interactive docs at `/docs`.
 
 Both emit byte-identical JSON (same key order, same trailing newline).
 
@@ -100,12 +100,16 @@ The `Update static catalog` Action (`.github/workflows/update-static.yml`) runs 
 ### Dynamic endpoint
 
 ```bash
-npm install
-npx wrangler deploy                 # deploy the Worker
-npx wrangler secret put GITHUB_TOKEN  # optional: better API rate limits
+pip install "fastapi[standard]"   # brings the FastAPI Cloud CLI
+fastapi dev                       # run locally on http://127.0.0.1:8000
+fastapi login                     # once, to authenticate
+fastapi deploy                    # deploy this directory
+fastapi cloud env set --secret GITHUB_TOKEN <token>   # optional: better API rate limits
 ```
 
-The Worker works without a token for low-volume use. **Remember to redeploy it after changing `src/index.js`** — GitHub Pages updates on push, the Worker does not.
+`pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against. The app reads `GITHUB_TOKEN` from the environment and works without one for low-volume use.
+
+**Remember to redeploy it after changing `main.py`** — GitHub Pages updates on push, the deployed app does not.
 
 ### Troubleshooting an empty or stale source in the app
 
