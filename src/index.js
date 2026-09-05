@@ -44,6 +44,14 @@ function versionedFilename(assetName, version) {
   return `${stem}_${suffix}${extension}`;
 }
 
+function assetMatcher(source) {
+  if (source.asset_pattern) {
+    const pattern = new RegExp(source.asset_pattern);
+    return (asset) => pattern.test(asset.name);
+  }
+  return (asset) => asset.name === source.asset;
+}
+
 async function resolveSource(source, env) {
   const response = await fetch(`${GITHUB_API}/repos/${source.repo}/releases?per_page=30`, {
     headers: githubHeaders(env),
@@ -53,12 +61,13 @@ async function resolveSource(source, env) {
     throw new Error(`${source.repo}: GitHub API returned ${response.status}`);
   }
 
+  const matchesAsset = assetMatcher(source);
   const releases = await response.json();
   const match = releases
     .filter((release) => !release.draft)
     .map((release) => ({
       release,
-      asset: release.assets?.find((asset) => asset.name === source.asset),
+      asset: release.assets?.find(matchesAsset),
     }))
     .find(({ asset }) => Boolean(asset));
 

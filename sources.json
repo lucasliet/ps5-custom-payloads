@@ -28,6 +28,14 @@
       "asset": "game-compressor.elf",
       "description": "Standalone PS5 payload for compressing, unpacking, validating, repairing and moving ShadowMountPlus-mounted games.",
       "category": "Storage"
+    },
+    {
+      "name": "APR Emu Updater",
+      "repo": "tsuramatsu1/apr-emu-updater",
+      "asset": "apr_emu_updater.elf",
+      "asset_pattern": "^apr_emu_updater(_v[\\d.]+)?\\.elf$",
+      "description": "Keeps APR Emu up to date on installed PS5 titles from a web interface on the console.",
+      "category": "Emulation"
     }
   ]
 }
