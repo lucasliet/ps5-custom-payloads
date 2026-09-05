@@ -1,7 +1,7 @@
 [
   {
     "name": "Pegasus DL",
-    "filename": "pegasus_dl.elf",
+    "filename": "pegasus_dl_v1.7.0.elf",
     "url": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.7.0/pegasus_dl.elf",
     "source": "https://github.com/pegasus-ps5/pegasus-dl/releases",
     "source_direct": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.7.0/pegasus_dl.elf",
@@ -13,7 +13,7 @@
   },
   {
     "name": "OnionHEN",
-    "filename": "OnionHEN.elf",
+    "filename": "OnionHEN_v0.0.12.elf",
     "url": "https://github.com/aydencharles/onionHEN/releases/download/v0.0.12/OnionHEN.elf",
     "source": "https://github.com/aydencharles/onionHEN/releases",
     "source_direct": "https://github.com/aydencharles/onionHEN/releases/download/v0.0.12/OnionHEN.elf",
@@ -25,7 +25,7 @@
   },
   {
     "name": "Prospero Manager",
-    "filename": "ProsperoMgr.elf",
+    "filename": "ProsperoMgr_v20260825204814.elf",
     "url": "https://github.com/notmaj0r/ProsperoMgr/releases/download/beta/ProsperoMgr.elf",
     "source": "https://github.com/notmaj0r/ProsperoMgr/releases",
     "source_direct": "https://github.com/notmaj0r/ProsperoMgr/releases/download/beta/ProsperoMgr.elf",
@@ -37,7 +37,7 @@
   },
   {
     "name": "Game Compressor",
-    "filename": "game-compressor.elf",
+    "filename": "game-compressor_v1.0.4.elf",
     "url": "https://github.com/juma-sayeh/PS5-Game-Compressor/releases/download/v1.0.4/game-compressor.elf",
     "source": "https://github.com/juma-sayeh/PS5-Game-Compressor/releases",
     "source_direct": "https://github.com/juma-sayeh/PS5-Game-Compressor/releases/download/v1.0.4/game-compressor.elf",

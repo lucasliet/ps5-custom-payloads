@@ -61,6 +61,8 @@ The catalog is a bare top-level JSON array, field-compatible with the official m
 
 If a custom source shows an empty list in Payload Manager, force-refresh the source: the app caches custom sources for 24 hours and a stale cache can survive a broken fetch (see itsPLK/ps5-payload-manager issue #92).
 
+The generated `filename` embeds the version (e.g. `pegasus_dl_v1.7.0.elf`) even though `url` points at the upstream asset's versionless name. Payload Manager detects updates and renders version badges purely from filenames — the catalog `version`/`checksum` fields are display and install-verification metadata only — and it saves installed files under the catalog `filename`. The versioned name makes updates visible (exact filename stops matching while the version-stripped base still does) and gets the old version cleaned up automatically, since both versions derive the same payload folder. For versions with a non-numeric head (e.g. `beta-20260825204814`), the suffix starts at the first digit (`ProsperoMgr_v20260825204814.elf`) so the app's version-stripping regex reduces every release of a payload to the same base name.
+
 Prospero Manager currently uses a rolling prerelease tag named `beta`. If a prerelease tag contains no numeric version, the generated version includes the release asset update timestamp, e.g. `beta-20260825204814`, so replacing the ELF under the same tag is still detected as an update.
 
 `checksum` uses GitHub's release-asset SHA-256 digest when available. Because the field is optional in PS5 Payload Manager, it is omitted if GitHub does not provide a SHA-256 digest for a future asset.

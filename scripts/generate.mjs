@@ -31,6 +31,16 @@ function lastUpdateDate(release, asset) {
   return timestamp ? timestamp.slice(0, 10) : undefined;
 }
 
+function versionedFilename(assetName, version) {
+  const dot = assetName.lastIndexOf(".");
+  const stem = dot > 0 ? assetName.slice(0, dot) : assetName;
+  const extension = dot > 0 ? assetName.slice(dot) : "";
+  const firstDigit = version.search(/\d/);
+  const suffix =
+    firstDigit < 0 ? version : `v${firstDigit === 0 ? version : version.slice(firstDigit)}`;
+  return `${stem}_${suffix}${extension}`;
+}
+
 async function resolveSource(source) {
   const response = await fetch(`${GITHUB_API}/repos/${source.repo}/releases?per_page=30`, {
     headers: headers(),
@@ -49,15 +59,16 @@ async function resolveSource(source) {
   if (!match) throw new Error(`${source.repo}: no non-draft release contains ${source.asset}`);
 
   const { release, asset } = match;
+  const version = normalizeVersion(release, asset);
   const payload = {
     name: source.name,
-    filename: source.asset,
+    filename: versionedFilename(source.asset, version),
     url: asset.browser_download_url,
     source: `https://github.com/${source.repo}/releases`,
     source_direct: asset.browser_download_url,
     description: source.description,
     last_update: lastUpdateDate(release, asset),
-    version: normalizeVersion(release, asset),
+    version,
     category: source.category,
   };
 
