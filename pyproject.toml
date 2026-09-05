@@ -1,0 +1,12 @@
+[project]
+name = "ps5-custom-payloads"
+version = "1.0.0"
+description = "Payload Manager catalog for jailbroken PS5s, resolved from GitHub Releases"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.141.1",
+    "httpx>=0.28.1",
+]
+
+[tool.fastapi]
+entrypoint = "main:app"
