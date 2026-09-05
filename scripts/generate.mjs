@@ -26,6 +26,11 @@ function checksumFromAsset(asset) {
   return match?.[1]?.toLowerCase();
 }
 
+function lastUpdateDate(release, asset) {
+  const timestamp = asset.updated_at || release.published_at || release.created_at;
+  return timestamp ? timestamp.slice(0, 10) : undefined;
+}
+
 async function resolveSource(source) {
   const response = await fetch(`${GITHUB_API}/repos/${source.repo}/releases?per_page=30`, {
     headers: headers(),
@@ -48,7 +53,10 @@ async function resolveSource(source) {
     name: source.name,
     filename: source.asset,
     url: asset.browser_download_url,
+    source: `https://github.com/${source.repo}/releases`,
+    source_direct: asset.browser_download_url,
     description: source.description,
+    last_update: lastUpdateDate(release, asset),
     version: normalizeVersion(release, asset),
     category: source.category,
   };
@@ -58,10 +66,7 @@ async function resolveSource(source) {
   return payload;
 }
 
-const catalog = {
-  name: sourcesConfig.name,
-  payloads: await Promise.all(sourcesConfig.sources.map(resolveSource)),
-};
+const payloads = await Promise.all(sourcesConfig.sources.map(resolveSource));
 
-await fs.writeFile("payloads.json", JSON.stringify(catalog, null, 2) + "\n");
-console.log(JSON.stringify(catalog, null, 2));
+await fs.writeFile("payloads.json", JSON.stringify(payloads, null, 2) + "\n");
+console.log(JSON.stringify(payloads, null, 2));
