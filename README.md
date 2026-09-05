@@ -102,14 +102,36 @@ The `Update static catalog` Action (`.github/workflows/update-static.yml`) runs 
 ```bash
 pip install "fastapi[standard]"   # brings the FastAPI Cloud CLI
 fastapi dev                       # run locally on http://127.0.0.1:8000
-fastapi login                     # once, to authenticate
-fastapi deploy                    # deploy this directory
-fastapi cloud env set --secret GITHUB_TOKEN <token>   # optional: better API rate limits
 ```
 
-`pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against. The app reads `GITHUB_TOKEN` from the environment and works without one for low-volume use.
+Deploying:
 
-**Remember to redeploy it after changing `main.py`** — GitHub Pages updates on push, the deployed app does not.
+```bash
+fastapi cloud env set --secret GITHUB_TOKEN   # optional: better API rate limits
+fastapi deploy
+```
+
+The first `fastapi deploy` prompts for login, then for the team and whether to create a new app or link an existing one. It stores the link in `.fastapicloud/`, which the CLI gitignores for you — the app ID is per-checkout, not repository state.
+
+Set environment variables **before** deploying: `env set` does not redeploy on its own, so a variable added afterwards only takes effect on the next deploy. Omitting the value makes the CLI prompt for it with hidden input, keeping the token out of your shell history.
+
+`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads `/repos/{owner}/{repo}/releases`. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — five today, and responses are `no-store` — so unauthenticated the endpoint runs dry after about a dozen fetches an hour. It still works without a token for low-volume use.
+
+`pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against.
+
+**Remember to redeploy it after changing `main.py`** — GitHub Pages updates on push, the deployed app does not. To close that gap, let the CLI wire up a deploy workflow (it provisions a deploy token, sets the repository secrets and writes the workflow file):
+
+```bash
+fastapi cloud setup-ci --branch main   # add --dry-run first to see what it would do
+```
+
+Day to day:
+
+```bash
+fastapi cloud logs                 # stream logs (--no-follow to fetch and exit)
+fastapi cloud env list             # what the deployed app has configured
+fastapi cloud deployments list     # deployment history
+```
 
 ### Troubleshooting an empty or stale source in the app
 
