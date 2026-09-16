@@ -1,15 +1,15 @@
 [
   {
     "name": "Pegasus DL",
-    "filename": "pegasus_dl_v1.8.0.elf",
-    "url": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.8.0/pegasus_dl.elf",
+    "filename": "pegasus_dl_v1.9.0.elf",
+    "url": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.9.0/pegasus_dl.elf",
     "source": "https://github.com/pegasus-ps5/pegasus-dl/releases",
-    "source_direct": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.8.0/pegasus_dl.elf",
+    "source_direct": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.9.0/pegasus_dl.elf",
     "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
-    "last_update": "2026-09-09",
-    "version": "v1.8.0",
+    "last_update": "2026-09-15",
+    "version": "v1.9.0",
     "category": "Downloads",
-    "checksum": "3665fa275a185e597ef364379a7f7ad5a9d58f30fda2af6bd04e43299ff2e669"
+    "checksum": "6336c626f0fbdef1272cc5d4e0239d7b44bf40f8106679083cf50d4c8e02389b"
   },
   {
     "name": "OnionHEN",
