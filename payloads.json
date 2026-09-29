@@ -25,15 +25,15 @@
   },
   {
     "name": "Prospero Manager",
-    "filename": "ProsperoMgr_v20260825204814.elf",
-    "url": "https://github.com/notmaj0r/ProsperoMgr/releases/download/beta/ProsperoMgr.elf",
+    "filename": "ProsperoMgr_v1.1.elf",
+    "url": "https://github.com/notmaj0r/ProsperoMgr/releases/download/v1.1/ProsperoMgr.elf",
     "source": "https://github.com/notmaj0r/ProsperoMgr/releases",
-    "source_direct": "https://github.com/notmaj0r/ProsperoMgr/releases/download/beta/ProsperoMgr.elf",
+    "source_direct": "https://github.com/notmaj0r/ProsperoMgr/releases/download/v1.1/ProsperoMgr.elf",
     "description": "Web-based all-in-one PS5 manager for files, payloads, PKGs, saves, processes, thermal controls and more.",
-    "last_update": "2026-08-25",
-    "version": "beta-20260825204814",
+    "last_update": "2026-09-28",
+    "version": "v1.1",
     "category": "Management",
-    "checksum": "6cde8d8e97478ff43f69d2c6b22ac6512311d83b1d9ceb09d56796b9200c1b3c"
+    "checksum": "e7a6bb544adb2fb2a61aa9cc83b0ad15f70b32d7511a3de0f1fb88812f11983c"
   },
   {
     "name": "Game Compressor",
