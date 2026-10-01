@@ -36,6 +36,14 @@
       "asset_pattern": "^apr_emu_updater(_v[\\d.]+)?\\.elf$",
       "description": "Keeps APR Emu up to date on installed PS5 titles from a web interface on the console.",
       "category": "Emulation"
+    },
+    {
+      "name": "WebKit Autoloader",
+      "repo": "itsPLK/ps5-webkit-autoloader",
+      "asset": "webkit-autoloader-installer.elf",
+      "asset_pattern": "^webkit-autoloader-installer(_v[\\d.]+)?\\.elf$",
+      "description": "Installer payload that sets up a fully offline WebKit exploit autoloader served from the console itself.",
+      "category": "Autoloader"
     }
   ]
 }

@@ -1,15 +1,15 @@
 [
   {
     "name": "Pegasus DL",
-    "filename": "pegasus_dl_v1.10.0.elf",
-    "url": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.10.0/pegasus_dl.elf",
+    "filename": "pegasus_dl_v1.10.1.elf",
+    "url": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.10.1/pegasus_dl.elf",
     "source": "https://github.com/pegasus-ps5/pegasus-dl/releases",
-    "source_direct": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.10.0/pegasus_dl.elf",
+    "source_direct": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.10.1/pegasus_dl.elf",
     "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
-    "last_update": "2026-09-29",
-    "version": "v1.10.0",
+    "last_update": "2026-09-30",
+    "version": "v1.10.1",
     "category": "Downloads",
-    "checksum": "724b245d8de08e5a16865180fac7f30eda72b94d45c9cc73686d9b2defc33f66"
+    "checksum": "b24fdc62fc6cad14684b214a9c5be6c1221585afbf9493e387ab90f9dee21138"
   },
   {
     "name": "OnionHEN",
@@ -58,5 +58,17 @@
     "version": "v2.0.6",
     "category": "Emulation",
     "checksum": "4f04464283a6a551883e40e36b59134ecad0e38ecbb7ea89cbec3f91a3bd9122"
+  },
+  {
+    "name": "WebKit Autoloader",
+    "filename": "webkit-autoloader-installer_v0.5.2.elf",
+    "url": "https://github.com/itsPLK/ps5-webkit-autoloader/releases/download/v0.5.2/webkit-autoloader-installer_v0.5.2.elf",
+    "source": "https://github.com/itsPLK/ps5-webkit-autoloader/releases",
+    "source_direct": "https://github.com/itsPLK/ps5-webkit-autoloader/releases/download/v0.5.2/webkit-autoloader-installer_v0.5.2.elf",
+    "description": "Installer payload that sets up a fully offline WebKit exploit autoloader served from the console itself.",
+    "last_update": "2026-09-30",
+    "version": "v0.5.2",
+    "category": "Autoloader",
+    "checksum": "f990e48e8330231d2066a7b8ab6dc25fda83b2cc36cb426c472b35b33767451a"
   }
 ]

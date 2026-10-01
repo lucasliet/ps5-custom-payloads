@@ -16,6 +16,7 @@ Live endpoints:
 | Prospero Manager | `notmaj0r/ProsperoMgr` | `ProsperoMgr.elf` | Management |
 | Game Compressor | `juma-sayeh/PS5-Game-Compressor` | `game-compressor.elf` | Storage |
 | APR Emu Updater | `tsuramatsu1/apr-emu-updater` | `apr_emu_updater.elf` (+ pattern) | Emulation |
+| WebKit Autoloader | `itsPLK/ps5-webkit-autoloader` | `webkit-autoloader-installer.elf` (+ pattern) | Autoloader |
 
 ## Architecture
 
