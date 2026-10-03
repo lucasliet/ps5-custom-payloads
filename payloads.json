@@ -13,15 +13,15 @@
   },
   {
     "name": "OnionHEN",
-    "filename": "OnionHEN_v0.0.13.elf",
-    "url": "https://github.com/aydencharles/onionHEN/releases/download/v0.0.13/OnionHEN.elf",
+    "filename": "OnionHEN_v0.9.0-beta1.elf",
+    "url": "https://github.com/aydencharles/onionHEN/releases/download/v0.9.0-beta1/OnionHEN.elf",
     "source": "https://github.com/aydencharles/onionHEN/releases",
-    "source_direct": "https://github.com/aydencharles/onionHEN/releases/download/v0.0.13/OnionHEN.elf",
+    "source_direct": "https://github.com/aydencharles/onionHEN/releases/download/v0.9.0-beta1/OnionHEN.elf",
     "description": "All-in-one PS5 HEN and Toolbox with payload management, cheats, overlays and background services.",
-    "last_update": "2026-09-11",
-    "version": "v0.0.13",
+    "last_update": "2026-10-03",
+    "version": "v0.9.0-beta1",
     "category": "HEN",
-    "checksum": "aa3f98847948e2ae8ea600c3f437e28247a0a4f8b73651a046d2859924bf97b3"
+    "checksum": "c587a0e92158d0a64f1c78e10a9743709b3ab194bee2d4cf8ffdd3147c3a7530"
   },
   {
     "name": "Prospero Manager",
