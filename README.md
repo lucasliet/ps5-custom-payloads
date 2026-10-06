@@ -12,7 +12,7 @@ Live endpoints:
 | Name | Repository | Asset | Category |
 |---|---|---|---|
 | Pegasus DL | `pegasus-ps5/pegasus-dl` | `pegasus_dl.elf` | Stores |
-| Orbit Store (Beta) | `saawant12/orbit-store-ps5` | `orbit_store.elf` | Stores |
+| Orbit Store | `saawant12/orbit-store-ps5` | `orbit_store.elf` | Stores |
 | OnionHEN | `aydencharles/onionHEN` | `OnionHEN.elf` | Unlocking |
 | WebKit Autoloader | `itsPLK/ps5-webkit-autoloader` | `webkit-autoloader-installer.elf` (+ pattern) | Unlocking |
 | Prospero Manager | `notmaj0r/ProsperoMgr` | `ProsperoMgr.elf` | Utilities |
