@@ -67,6 +67,13 @@
       "asset_pattern": "^OmniPad-PS5(-.+)?\\.elf$",
       "description": "Universal controller engine with USB/2.4GHz hotplug and a web dashboard for third-party pads on jailbroken PS5s.",
       "category": "Utilities"
+    },
+    {
+      "name": "Tailscale",
+      "repo": "holdmysocks/ps5-tailscale",
+      "asset": "tailscale.elf",
+      "description": "Puts a jailbroken PS5 on your Tailscale network: Remote Play from anywhere, Taildrop, and the console's services at its tailnet address.",
+      "category": "Utilities"
     }
   ]
 }

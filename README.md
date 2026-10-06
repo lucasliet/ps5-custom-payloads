@@ -20,7 +20,7 @@ Live endpoints:
 | APR Emu Updater | `tsuramatsu1/apr-emu-updater` | `apr_emu_updater.elf` (+ pattern) | Utilities |
 | AnyPad | `mistervampi/AnyPad-PS5` | `AnyPad-PS5.elf` (+ pattern) | Utilities |
 | OmniPad | `diegobarbosaa/OmniPad-PS5` | `OmniPad-PS5.elf` (+ pattern) | Utilities |
-| Orbit Store (Beta) | `saawant12/orbit-store-ps5` | `orbit_store.elf` | Utilities |
+| Tailscale | `holdmysocks/ps5-tailscale` | `tailscale.elf` | Utilities |
 
 ## Architecture
 
