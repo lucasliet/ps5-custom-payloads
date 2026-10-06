@@ -9,10 +9,10 @@
       "category": "Stores"
     },
     {
-      "name": "Orbit Store",
+      "name": "Orbit Store (Beta)",
       "repo": "saawant12/orbit-store-ps5",
       "asset": "orbit_store.elf",
-      "description": "Modern PS5 store and download manager with a native TV app, resumable downloads and phone or computer pairing.",
+      "description": "A modern PS5 download manager with a native TV app, resumable downloads and phone controls.",
       "category": "Stores"
     },
     {
