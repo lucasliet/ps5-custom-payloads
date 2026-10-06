@@ -25,7 +25,7 @@ Live endpoints:
 
 `sources.json` is the single source of truth: what to track and the metadata shown in the app. The download flow is:
 
-1. **Mirror (CI)** — `scripts/mirror.mjs` (`npm run mirror`) resolves every source against its upstream GitHub Releases, downloads each ELF, and publishes a snapshot release in this repository (tag `mirror-<UTC timestamp>`, e.g. `mirror-20261006031745`) holding one versioned ELF per payload plus a `payloads.json` manifest asset. A GitHub Action runs it daily at `03:17 UTC`. No new snapshot is published when every payload already matches the latest snapshot, so unchanged days produce no releases.
+1. **Mirror (CI)** — `scripts/mirror.mjs` (`npm run mirror`) resolves every source against its upstream GitHub Releases, downloads each ELF, and publishes a snapshot release in this repository (tag `mirror-<UTC timestamp>`, e.g. `mirror-20261006031745`) holding one versioned ELF per payload plus a `payloads.json` manifest asset. A GitHub Action runs it daily at `03:17 UTC`, on pushes to `main` that change `sources.json` (including merged PRs), or manually via `workflow_dispatch`. No new snapshot is published when every payload already matches the latest snapshot, so unchanged days produce no releases.
 2. **Static catalog (primary)** — `payloads.json` at the repo root is the manifest of the latest snapshot, committed by the mirror run. GitHub Pages serves it from `main` / `/(root)` (branch-based deployment, no Pages workflow needed). `scripts/generate.mjs` (`npm run generate`) re-syncs it read-only from the latest snapshot without publishing anything.
 3. **Dynamic endpoint** — `main.py` is a FastAPI app, deployed on [FastAPI Cloud](https://fastapicloud.com), that resolves every source against its upstream GitHub Releases at request time, so a payload published minutes ago is already listed without waiting for the daily mirror. Only sources the upstream no longer serves are filled in from this repository's newest snapshot release (falling back to the bundled `payloads.json` when the mirror API itself is unreachable). GitHub Pages is static and cannot query the API per request; the app exists for request-time freshness. It also serves FastAPI's interactive docs at `/docs`.
 
@@ -95,7 +95,7 @@ Append an entry to `sources.json`:
 }
 ```
 
-`asset_pattern` is optional (omit it when the asset name never changes). Keep the asset stem free of version-like suffixes (`_v1`, `-2`) so the derived base name stays stable. Then run `npm run mirror` (publishes a new snapshot and rewrites `payloads.json`), commit the regenerated `payloads.json`, and force-refresh the source in the app. Preview the plan without publishing anything with `DRY_RUN=1 npm run mirror`.
+`asset_pattern` is optional (omit it when the asset name never changes). Keep the asset stem free of version-like suffixes (`_v1`, `-2`) so the derived base name stays stable. Commit and push the change to `main` (or merge a PR): the mirror workflow automatically publishes the snapshot and commits the regenerated `payloads.json`. Then force-refresh the source in the app. For a local preview without publishing anything, use `DRY_RUN=1 npm run mirror`; to publish locally, use `npm run mirror` and commit the regenerated `payloads.json`.
 
 Categories are free-form strings (custom categories are supported since the app's v0.3.3).
 
@@ -108,7 +108,7 @@ npm run mirror   # resolve upstream, publish a snapshot release, rewrite payload
 npm run generate # read-only: re-sync payloads.json from the latest snapshot
 ```
 
-The `Mirror payloads` Action (`.github/workflows/mirror-payloads.yml`) runs daily at `03:17 UTC` with the built-in `GITHUB_TOKEN` (needs `contents: write` to publish/prune snapshot releases), publishes a new snapshot only when something changed, and commits `payloads.json` only when it changes. GitHub Pages publishes `main` automatically.
+The `Mirror payloads` Action (`.github/workflows/mirror-payloads.yml`) runs daily at `03:17 UTC`, on pushes to `main` that change `sources.json`, or manually via `workflow_dispatch`. Pushes that only change the generated `payloads.json` or unrelated files do not trigger the mirror. It uses the built-in `GITHUB_TOKEN` (needs `contents: write` to publish/prune snapshot releases), publishes a new snapshot only when something changed, and commits `payloads.json` only when it changes. GitHub Pages publishes `main` automatically.
 
 ### Dynamic endpoint
 

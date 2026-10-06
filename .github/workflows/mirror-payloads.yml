@@ -1,6 +1,11 @@
 name: Mirror payloads
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - sources.json
   workflow_dispatch:
   schedule:
     - cron: "17 3 * * *"
