@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Test mirror helpers
+        run: npm test
       - name: Mirror upstream payloads into a snapshot release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

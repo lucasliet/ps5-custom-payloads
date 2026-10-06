@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "generate": "node scripts/generate.mjs",
-    "mirror": "node scripts/mirror.mjs"
+    "mirror": "node scripts/mirror.mjs",
+    "test": "node --test scripts/*.test.mjs"
   }
 }

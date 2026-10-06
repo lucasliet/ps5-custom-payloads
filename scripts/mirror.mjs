@@ -15,6 +15,7 @@ import {
   manifestEntryMatches,
   resolveUpstream,
   sha256Hex,
+  snapshotManifest,
   snapshotTag,
   snapshotsToPrune,
   versionedFilename,
@@ -108,14 +109,9 @@ const snapshots = allReleases.filter(
 const previous = [...snapshots].sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0] ?? null;
 const previousManifest = new Map();
 if (previous) {
-  const manifestAsset = previous.assets?.find((a) => a.name === MANIFEST_ASSET);
-  if (!manifestAsset) throw new Error(`${previous.tag_name}: snapshot has no ${MANIFEST_ASSET} asset`);
-  const response = await fetch(manifestAsset.browser_download_url, {
-    headers: headers(token()),
-    redirect: "follow",
-  });
-  if (!response.ok) throw new Error(`previous manifest download returned ${response.status}`);
-  for (const entry of await response.json()) previousManifest.set(entry.name, entry);
+  for (const entry of await snapshotManifest(previous, token())) {
+    previousManifest.set(entry.name, entry);
+  }
 }
 
 // 1. Resolve every source against its upstream repo. Unreachable upstreams
@@ -143,7 +139,7 @@ for (const source of sourcesConfig.sources) {
     version,
     lastUpdate: lastUpdateDate(release, asset),
     upstreamDigest: checksumFromDigest(asset.digest),
-    upstreamUrl: asset.browser_download_url,
+    upstreamUrl: asset.url,
     unchanged: manifestEntryMatches(previousManifest.get(source.name) ?? {}, {
       version,
       upstreamDigest: checksumFromDigest(asset.digest),
@@ -180,7 +176,7 @@ for (const item of planned) {
   if (item.fallbackEntry) {
     const asset = previous.assets?.find((a) => a.name === item.fallbackEntry.filename);
     if (!asset) throw new Error(`${item.source.name}: fallback asset missing from ${previous.tag_name}`);
-    bytes = await downloadBytes(asset.browser_download_url, token());
+    bytes = await downloadBytes(asset.url, token());
     base = { version: item.fallbackEntry.version, lastUpdate: item.fallbackEntry.last_update };
   } else {
     bytes = await downloadBytes(item.upstreamUrl, token());

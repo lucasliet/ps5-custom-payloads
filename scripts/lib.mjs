@@ -107,7 +107,12 @@ export async function resolveUpstream(source, token) {
 }
 
 export async function downloadBytes(url, token) {
-  const response = await fetch(url, { headers: headers(token), redirect: "follow" });
+  // The asset API requires octet-stream to return bytes instead of metadata;
+  // browser download URLs cannot authenticate access to private releases.
+  const response = await fetch(url, {
+    headers: { ...headers(token), Accept: "application/octet-stream" },
+    redirect: "follow",
+  });
   if (!response.ok) throw new Error(`${url}: download returned ${response.status}`);
   return Buffer.from(await response.arrayBuffer());
 }
@@ -129,14 +134,8 @@ export async function snapshotManifest(snapshotRelease, token) {
   if (!manifestAsset) {
     throw new Error(`${snapshotRelease.tag_name}: snapshot has no ${MANIFEST_ASSET} asset`);
   }
-  const response = await fetch(manifestAsset.browser_download_url, {
-    headers: headers(token),
-    redirect: "follow",
-  });
-  if (!response.ok) {
-    throw new Error(`${manifestAsset.browser_download_url}: download returned ${response.status}`);
-  }
-  const manifest = await response.json();
+  const bytes = await downloadBytes(manifestAsset.url, token);
+  const manifest = JSON.parse(bytes.toString("utf8"));
   if (!Array.isArray(manifest)) throw new Error(`${snapshotRelease.tag_name}: manifest is not an array`);
   return manifest;
 }
