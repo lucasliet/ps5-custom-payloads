@@ -6,36 +6,21 @@
       "repo": "pegasus-ps5/pegasus-dl",
       "asset": "pegasus_dl.elf",
       "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
-      "category": "Downloads"
+      "category": "Stores"
+    },
+    {
+      "name": "Orbit Store",
+      "repo": "saawant12/orbit-store-ps5",
+      "asset": "orbit_store.elf",
+      "description": "Modern PS5 store and download manager with a native TV app, resumable downloads and phone or computer pairing.",
+      "category": "Stores"
     },
     {
       "name": "OnionHEN",
       "repo": "aydencharles/onionHEN",
       "asset": "OnionHEN.elf",
       "description": "All-in-one PS5 HEN and Toolbox with payload management, cheats, overlays and background services.",
-      "category": "HEN"
-    },
-    {
-      "name": "Prospero Manager",
-      "repo": "notmaj0r/ProsperoMgr",
-      "asset": "ProsperoMgr.elf",
-      "description": "Web-based all-in-one PS5 manager for files, payloads, PKGs, saves, processes, thermal controls and more.",
-      "category": "Management"
-    },
-    {
-      "name": "Game Compressor",
-      "repo": "juma-sayeh/PS5-Game-Compressor",
-      "asset": "game-compressor.elf",
-      "description": "Standalone PS5 payload for compressing, unpacking, validating, repairing and moving ShadowMountPlus-mounted games.",
-      "category": "Storage"
-    },
-    {
-      "name": "APR Emu Updater",
-      "repo": "tsuramatsu1/apr-emu-updater",
-      "asset": "apr_emu_updater.elf",
-      "asset_pattern": "^apr_emu_updater(_v[\\d.]+)?\\.elf$",
-      "description": "Keeps APR Emu up to date on installed PS5 titles from a web interface on the console.",
-      "category": "Emulation"
+      "category": "Unlocking"
     },
     {
       "name": "WebKit Autoloader",
@@ -43,7 +28,29 @@
       "asset": "webkit-autoloader-installer.elf",
       "asset_pattern": "^webkit-autoloader-installer(_v[\\d.]+)?\\.elf$",
       "description": "Installer payload that sets up a fully offline WebKit exploit autoloader served from the console itself.",
-      "category": "Autoloader"
+      "category": "Unlocking"
+    },
+    {
+      "name": "Prospero Manager",
+      "repo": "notmaj0r/ProsperoMgr",
+      "asset": "ProsperoMgr.elf",
+      "description": "Web-based all-in-one PS5 manager for files, payloads, PKGs, saves, processes, thermal controls and more.",
+      "category": "Utilities"
+    },
+    {
+      "name": "Game Compressor",
+      "repo": "juma-sayeh/PS5-Game-Compressor",
+      "asset": "game-compressor.elf",
+      "description": "Standalone PS5 payload for compressing, unpacking, validating, repairing and moving ShadowMountPlus-mounted games.",
+      "category": "Utilities"
+    },
+    {
+      "name": "APR Emu Updater",
+      "repo": "tsuramatsu1/apr-emu-updater",
+      "asset": "apr_emu_updater.elf",
+      "asset_pattern": "^apr_emu_updater(_v[\\d.]+)?\\.elf$",
+      "description": "Keeps APR Emu up to date on installed PS5 titles from a web interface on the console.",
+      "category": "Utilities"
     },
     {
       "name": "AnyPad",
@@ -51,7 +58,7 @@
       "asset": "AnyPad-PS5.elf",
       "asset_pattern": "^AnyPad-PS5(-.+)?\\.elf$",
       "description": "Resident payload that connects DualShock 4, Xbox, Switch Pro, 8BitDo and other Bluetooth gamepads as virtual DualSense controllers.",
-      "category": "Controllers"
+      "category": "Utilities"
     },
     {
       "name": "OmniPad",
@@ -59,13 +66,6 @@
       "asset": "OmniPad-PS5.elf",
       "asset_pattern": "^OmniPad-PS5(-.+)?\\.elf$",
       "description": "Universal controller engine with USB/2.4GHz hotplug and a web dashboard for third-party pads on jailbroken PS5s.",
-      "category": "Controllers"
-    },
-    {
-      "name": "Orbit Store (Beta)",
-      "repo": "saawant12/orbit-store-ps5",
-      "asset": "orbit_store.elf",
-      "description": "A modern PS5 download manager with a native TV app, resumable downloads and phone controls.",
       "category": "Utilities"
     }
   ]

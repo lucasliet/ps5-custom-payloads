@@ -11,14 +11,15 @@ Live endpoints:
 
 | Name | Repository | Asset | Category |
 |---|---|---|---|
-| Pegasus DL | `pegasus-ps5/pegasus-dl` | `pegasus_dl.elf` | Downloads |
-| OnionHEN | `aydencharles/onionHEN` | `OnionHEN.elf` | HEN |
-| Prospero Manager | `notmaj0r/ProsperoMgr` | `ProsperoMgr.elf` | Management |
-| Game Compressor | `juma-sayeh/PS5-Game-Compressor` | `game-compressor.elf` | Storage |
-| APR Emu Updater | `tsuramatsu1/apr-emu-updater` | `apr_emu_updater.elf` (+ pattern) | Emulation |
-| WebKit Autoloader | `itsPLK/ps5-webkit-autoloader` | `webkit-autoloader-installer.elf` (+ pattern) | Autoloader |
-| AnyPad | `mistervampi/AnyPad-PS5` | `AnyPad-PS5.elf` (+ pattern) | Controllers |
-| OmniPad | `diegobarbosaa/OmniPad-PS5` | `OmniPad-PS5.elf` (+ pattern) | Controllers |
+| Pegasus DL | `pegasus-ps5/pegasus-dl` | `pegasus_dl.elf` | Stores |
+| Orbit Store | `saawant12/orbit-store-ps5` | `orbit_store.elf` | Stores |
+| OnionHEN | `aydencharles/onionHEN` | `OnionHEN.elf` | Unlocking |
+| WebKit Autoloader | `itsPLK/ps5-webkit-autoloader` | `webkit-autoloader-installer.elf` (+ pattern) | Unlocking |
+| Prospero Manager | `notmaj0r/ProsperoMgr` | `ProsperoMgr.elf` | Utilities |
+| Game Compressor | `juma-sayeh/PS5-Game-Compressor` | `game-compressor.elf` | Utilities |
+| APR Emu Updater | `tsuramatsu1/apr-emu-updater` | `apr_emu_updater.elf` (+ pattern) | Utilities |
+| AnyPad | `mistervampi/AnyPad-PS5` | `AnyPad-PS5.elf` (+ pattern) | Utilities |
+| OmniPad | `diegobarbosaa/OmniPad-PS5` | `OmniPad-PS5.elf` (+ pattern) | Utilities |
 | Orbit Store (Beta) | `saawant12/orbit-store-ps5` | `orbit_store.elf` | Utilities |
 
 ## Architecture
