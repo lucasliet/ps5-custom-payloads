@@ -1,11 +1,11 @@
 """Request-time payload catalog API, deployed on FastAPI Cloud.
 
-GitHub Pages serves the daily `payloads.json` snapshot; this app resolves every
-source against the GitHub Releases API on each request, so a payload published
-minutes ago is already listed.
-
-Kept deliberately parallel to `scripts/generate.mjs` — the two build the same
-catalog and must stay logically identical.
+GitHub Pages serves the daily `payloads.json` snapshot; this app resolves
+every source against its upstream GitHub Releases on each request, so a
+payload published minutes ago is already listed. Sources the upstream no
+longer serves are filled in from this repository's newest `mirror-*`
+snapshot release (falling back to the bundled `payloads.json`), so the
+catalog stays up even when an upstream repository disappears.
 """
 
 from __future__ import annotations
@@ -24,9 +24,14 @@ from starlette.exceptions import HTTPException
 
 GITHUB_API = "https://api.github.com"
 USER_AGENT = "ps5-custom-payloads-api"
+MIRROR_OWNER = "lucasliet"
+MIRROR_REPO = "ps5-custom-payloads"
+MIRROR_PREFIX = "mirror-"
+MANIFEST_ASSET = "payloads.json"
 RELEASES_PER_PAGE = 30
 REQUEST_TIMEOUT = 10.0
 
+BUNDLED_CATALOG_PATH = Path(__file__).resolve().parent / "payloads.json"
 SOURCES_PATH = Path(__file__).resolve().parent / "sources.json"
 
 Release = dict[str, Any]
@@ -36,7 +41,7 @@ PayloadEntry = dict[str, Any]
 
 
 class CatalogError(RuntimeError):
-    """A source could not be resolved against the GitHub Releases API."""
+    """A source could not be resolved, neither upstream nor from the mirror."""
 
 
 def load_sources() -> list[Source]:
@@ -144,6 +149,62 @@ async def resolve_source(client: httpx.AsyncClient, source: Source) -> PayloadEn
     return {key: value for key, value in entry.items() if value is not None}
 
 
+def load_bundled_catalog() -> list[PayloadEntry]:
+    """The last snapshot manifest committed to the repo (pre-mirror fallback)."""
+    catalog = json.loads(BUNDLED_CATALOG_PATH.read_text(encoding="utf-8"))
+    if not isinstance(catalog, list):
+        raise CatalogError("bundled payloads.json is not an array")
+    return catalog
+
+
+async def fetch_snapshot_manifest(client: httpx.AsyncClient) -> list[PayloadEntry]:
+    """The manifest attached to the newest mirror-* snapshot release."""
+    response = await client.get(
+        f"{GITHUB_API}/repos/{MIRROR_OWNER}/{MIRROR_REPO}/releases",
+        params={"per_page": RELEASES_PER_PAGE},
+    )
+    if not response.is_success:
+        raise CatalogError(f"mirror releases returned {response.status_code}")
+
+    snapshot = next(
+        (
+            release
+            for release in response.json()
+            if not release.get("draft") and (release.get("tag_name") or "").startswith(MIRROR_PREFIX)
+        ),
+        None,
+    )
+    if snapshot is None:
+        raise CatalogError("no mirror-* snapshot release found")
+
+    manifest_asset = next(
+        (asset for asset in snapshot.get("assets") or [] if asset.get("name") == MANIFEST_ASSET),
+        None,
+    )
+    if manifest_asset is None:
+        raise CatalogError(f"{snapshot.get('tag_name')}: snapshot has no {MANIFEST_ASSET} asset")
+
+    download = await client.get(manifest_asset["browser_download_url"])
+    if not download.is_success:
+        raise CatalogError(f"manifest download returned {download.status_code}")
+
+    manifest = download.json()
+    if not isinstance(manifest, list):
+        raise CatalogError("snapshot manifest is not an array")
+    return manifest
+
+
+async def fallback_entries(client: httpx.AsyncClient) -> dict[str, PayloadEntry]:
+    """Snapshot manifest by payload name, or the bundled catalog when the
+    mirror API itself is unreachable."""
+    try:
+        manifest = await fetch_snapshot_manifest(client)
+    except Exception as error:
+        print(f"snapshot unreachable ({error}); using bundled payloads.json")
+        manifest = load_bundled_catalog()
+    return {entry["name"]: entry for entry in manifest if isinstance(entry, dict)}
+
+
 async def build_catalog() -> list[PayloadEntry]:
     sources = load_sources()
     async with httpx.AsyncClient(
@@ -151,12 +212,32 @@ async def build_catalog() -> list[PayloadEntry]:
         timeout=REQUEST_TIMEOUT,
         follow_redirects=True,
     ) as client:
-        return list(await asyncio.gather(*(resolve_source(client, source) for source in sources)))
+        results = await asyncio.gather(
+            *(resolve_source(client, source) for source in sources),
+            return_exceptions=True,
+        )
+        if not any(isinstance(result, Exception) for result in results):
+            return list(results)
+
+        # Upstream-first, mirror as backup: only unreachable sources are
+        # filled from this repository's snapshot.
+        fallbacks = await fallback_entries(client)
+        catalog = []
+        for source, result in zip(sources, results):
+            if isinstance(result, Exception):
+                entry = fallbacks.get(source["name"])
+                if entry is None:
+                    raise CatalogError(f"{result} (no snapshot fallback)")
+                print(f"fallback to snapshot for {source['name']}: {result}")
+                catalog.append(entry)
+            else:
+                catalog.append(result)
+        return catalog
 
 
 app = FastAPI(
     title="PS5 Custom Payloads",
-    description="Payload Manager catalog resolved from GitHub Releases at request time.",
+    description="Payload Manager catalog resolved from upstream GitHub Releases at request time, with snapshot fallback.",
     version="1.0.0",
 )
 
@@ -204,7 +285,7 @@ async def payload_catalog() -> Response:
     """The catalog as a bare JSON array, ready to be added as a Payload Manager source."""
     try:
         catalog = await build_catalog()
-    except Exception as error:  # a single unreachable source must not hide its cause
+    except Exception as error:  # mirror and bundled fallback both failed
         return json_response(
             {"error": "Failed to build payload catalog", "detail": str(error)},
             502,

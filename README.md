@@ -1,6 +1,6 @@
 # PS5 Custom Payloads
 
-Custom payload repository for [Payload Manager](https://github.com/itsPLK/ps5-payload-manager) (pldmgr) on jailbroken PS5s. Instead of hosting ELF binaries, this repository tracks the latest GitHub releases of each payload and serves a catalog JSON telling the app where to download them.
+Custom payload repository for [Payload Manager](https://github.com/itsPLK/ps5-payload-manager) (pldmgr) on jailbroken PS5s. This repository mirrors the latest GitHub release ELF of each tracked payload into its own snapshot releases, and serves a catalog JSON telling the app where to download them — so payloads stay available even if an upstream repository disappears.
 
 Live endpoints:
 
@@ -22,22 +22,30 @@ Live endpoints:
 
 ## Architecture
 
-`sources.json` is the single source of truth: what to track and the metadata shown in the app. Two generators read it and must stay logically identical:
+`sources.json` is the single source of truth: what to track and the metadata shown in the app. The download flow is:
 
-1. **Static catalog (primary)** — `scripts/generate.mjs` (`npm run generate`) resolves every source against the GitHub Releases API and writes `payloads.json`. A GitHub Action regenerates it daily at `03:17 UTC` and commits only when the result changes. GitHub Pages serves the file from `main` / `/(root)` (branch-based deployment, no Pages workflow needed).
-2. **Dynamic endpoint** — `main.py` is a FastAPI app, deployed on [FastAPI Cloud](https://fastapicloud.com), that builds the same catalog at request time, so every fetch resolves the newest release without waiting for the daily Action. GitHub Pages is static and cannot query the API per request; the app exists for request-time freshness. It also serves FastAPI's interactive docs at `/docs`.
+1. **Mirror (CI)** — `scripts/mirror.mjs` (`npm run mirror`) resolves every source against its upstream GitHub Releases, downloads each ELF, and publishes a snapshot release in this repository (tag `mirror-<UTC timestamp>`, e.g. `mirror-20261006031745`) holding one versioned ELF per payload plus a `payloads.json` manifest asset. A GitHub Action runs it daily at `03:17 UTC`. No new snapshot is published when every payload already matches the latest snapshot, so unchanged days produce no releases.
+2. **Static catalog (primary)** — `payloads.json` at the repo root is the manifest of the latest snapshot, committed by the mirror run. GitHub Pages serves it from `main` / `/(root)` (branch-based deployment, no Pages workflow needed). `scripts/generate.mjs` (`npm run generate`) re-syncs it read-only from the latest snapshot without publishing anything.
+3. **Dynamic endpoint** — `main.py` is a FastAPI app, deployed on [FastAPI Cloud](https://fastapicloud.com), that resolves every source against its upstream GitHub Releases at request time, so a payload published minutes ago is already listed without waiting for the daily mirror. Only sources the upstream no longer serves are filled in from this repository's newest snapshot release (falling back to the bundled `payloads.json` when the mirror API itself is unreachable). GitHub Pages is static and cannot query the API per request; the app exists for request-time freshness. It also serves FastAPI's interactive docs at `/docs`.
 
-Both emit byte-identical JSON (same key order, same trailing newline).
+`url` and `source_direct` always point at this repository's snapshot releases; every other field keeps the upstream metadata (name, version, description, category, `last_update`, `source`).
+
+### Backup and retention policy
+
+- Each snapshot is self-contained: when a payload has no newer upstream version, the snapshot repeats the previous release's ELF for it.
+- Upstream is always tried first; only when an upstream repository is unreachable (deleted, renamed) is that payload's ELF copied from the previous snapshot instead of downloaded.
+- The last 5 snapshot releases are kept — on the 6th, the oldest release **and its tag** are deleted. Old catalog URLs therefore rot after ~5 snapshots; clients always consume the latest catalog, which points at the latest snapshot.
 
 ## How each catalog entry is built
 
-For every source in `sources.json`:
+For every source in `sources.json`, the mirror run:
 
 1. **Release resolution** — fetch the repository's last 30 releases, skip drafts, and take the first (newest) release containing a matching asset. Prereleases are accepted — that is how Prospero Manager's rolling `beta` tag works. An asset matches by exact `asset` name, or by the optional `asset_pattern` regex when the upstream renames assets between releases (e.g. `apr_emu_updater_v2.0.6.elf`).
 2. **Version** — if the tag contains any digit, the version is the tag verbatim (`v1.7.0`). Otherwise (rolling tags like `beta`) the version becomes `<tag>-<asset update timestamp>` (e.g. `beta-20260825204814`), so replacing the ELF under the same tag still counts as a new version.
-3. **Filename** — the catalog `filename` is `<asset stem>_v<version>.elf` (e.g. `pegasus_dl_v1.7.0.elf`), even though `url` points at the upstream asset's real (possibly versionless) name. When the version has a non-numeric head (e.g. `beta-20260825204814`), the suffix starts at the first digit (`ProsperoMgr_v20260825204814.elf`). See [Payload Manager compatibility](#payload-manager-compatibility) for why.
-4. **Checksum** — GitHub's release-asset SHA-256 digest, omitted when GitHub does not provide one (the field is optional in the app).
-5. **Metadata** — `source` is the repository's releases page, `source_direct` mirrors the download URL, `last_update` is the asset update date (`YYYY-MM-DD`).
+3. **Filename** — the catalog `filename` is `<asset stem>_v<version>.elf` (e.g. `pegasus_dl_v1.7.0.elf`). The mirrored asset is uploaded under exactly this name. When the version has a non-numeric head (e.g. `beta-20260825204814`), the suffix starts at the first digit (`ProsperoMgr_v20260825204814.elf`). See [Payload Manager compatibility](#payload-manager-compatibility) for why.
+4. **Mirroring** — the upstream ELF is downloaded byte-for-byte and uploaded to the new snapshot release; `url` and `source_direct` point at the mirrored copy (`https://github.com/lucasliet/ps5-custom-payloads/releases/download/<snapshot-tag>/<filename>`).
+5. **Checksum** — SHA-256 computed over the mirrored bytes (warns when it differs from the upstream release digest).
+6. **Metadata** — `source` stays the upstream repository's releases page, `last_update` is the upstream asset update date (`YYYY-MM-DD`); `description`, `category` and `version` are kept verbatim from the original.
 
 ## Catalog schema
 
@@ -48,9 +56,9 @@ The catalog is a **bare top-level JSON array**:
   {
     "name": "Pegasus DL",
     "filename": "pegasus_dl_v1.7.0.elf",
-    "url": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.7.0/pegasus_dl.elf",
+    "url": "https://github.com/lucasliet/ps5-custom-payloads/releases/download/mirror-20261006031745/pegasus_dl_v1.7.0.elf",
     "source": "https://github.com/pegasus-ps5/pegasus-dl/releases",
-    "source_direct": "https://github.com/pegasus-ps5/pegasus-dl/releases/download/v1.7.0/pegasus_dl.elf",
+    "source_direct": "https://github.com/lucasliet/ps5-custom-payloads/releases/download/mirror-20261006031745/pegasus_dl_v1.7.0.elf",
     "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
     "last_update": "2026-06-24",
     "version": "v1.7.0",
@@ -86,19 +94,20 @@ Append an entry to `sources.json`:
 }
 ```
 
-`asset_pattern` is optional (omit it when the asset name never changes). Keep the asset stem free of version-like suffixes (`_v1`, `-2`) so the derived base name stays stable. Then run `npm run generate`, commit the regenerated `payloads.json`, and force-refresh the source in the app.
+`asset_pattern` is optional (omit it when the asset name never changes). Keep the asset stem free of version-like suffixes (`_v1`, `-2`) so the derived base name stays stable. Then run `npm run mirror` (publishes a new snapshot and rewrites `payloads.json`), commit the regenerated `payloads.json`, and force-refresh the source in the app. Preview the plan without publishing anything with `DRY_RUN=1 npm run mirror`.
 
 Categories are free-form strings (custom categories are supported since the app's v0.3.3).
 
 ## Operations
 
-### Static catalog
+### Static catalog and mirror
 
 ```bash
-npm run generate   # rebuild payloads.json locally
+npm run mirror   # resolve upstream, publish a snapshot release, rewrite payloads.json
+npm run generate # read-only: re-sync payloads.json from the latest snapshot
 ```
 
-The `Update static catalog` Action (`.github/workflows/update-static.yml`) runs daily at `03:17 UTC` with the built-in `GITHUB_TOKEN` and commits `payloads.json` only when it changes. GitHub Pages publishes `main` automatically.
+The `Mirror payloads` Action (`.github/workflows/mirror-payloads.yml`) runs daily at `03:17 UTC` with the built-in `GITHUB_TOKEN` (needs `contents: write` to publish/prune snapshot releases), publishes a new snapshot only when something changed, and commits `payloads.json` only when it changes. GitHub Pages publishes `main` automatically.
 
 ### Dynamic endpoint
 
@@ -118,7 +127,7 @@ The first `fastapi deploy` prompts for login, then for the team and whether to c
 
 Set environment variables **before** deploying: `env set` does not redeploy on its own, so a variable added afterwards only takes effect on the next deploy. Omitting the value makes the CLI prompt for it with hidden input, keeping the token out of your shell history.
 
-`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads `/repos/{owner}/{repo}/releases`. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — eight today, and responses are `no-store` — so unauthenticated the endpoint runs dry after about a dozen fetches an hour. It still works without a token for low-volume use.
+`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads release metadata. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — eight today, plus two more only when some source needs the snapshot fallback — and responses are `no-store` — so unauthenticated the endpoint runs dry after a handful of fetches an hour. It still works without a token for low-volume use.
 
 `pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against.
 

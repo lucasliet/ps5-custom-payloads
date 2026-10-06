@@ -1,92 +1,14 @@
 import fs from "node:fs/promises";
-import sourcesConfig from "../sources.json" with { type: "json" };
+import { latestSnapshot, snapshotManifest } from "./lib.mjs";
 
-const GITHUB_API = "https://api.github.com";
-
-function headers() {
-  const h = {
-    Accept: "application/vnd.github+json",
-    "User-Agent": "ps5-custom-payloads-generator",
-    "X-GitHub-Api-Version": "2022-11-28",
-  };
-  if (process.env.GITHUB_TOKEN) h.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  return h;
+// Read-only refresh of the static catalog: copies the manifest attached to
+// the newest mirror-* snapshot release into payloads.json. Run
+// `npm run mirror` to publish a new snapshot first.
+const token = process.env.GITHUB_TOKEN;
+const snapshot = await latestSnapshot(token);
+if (!snapshot) {
+  throw new Error("no mirror-* snapshot release found; run `npm run mirror` first");
 }
-
-function normalizeVersion(release, asset) {
-  const tag = release.tag_name || "unknown";
-  if (/\d/.test(tag)) return tag;
-  const timestamp = asset.updated_at || release.published_at || release.created_at;
-  if (!timestamp) return tag;
-  return `${tag}-${timestamp.replace(/[-:TZ.]/g, "").slice(0, 14)}`;
-}
-
-function checksumFromAsset(asset) {
-  const match = /^sha256:([a-f0-9]{64})$/i.exec(asset.digest || "");
-  return match?.[1]?.toLowerCase();
-}
-
-function lastUpdateDate(release, asset) {
-  const timestamp = asset.updated_at || release.published_at || release.created_at;
-  return timestamp ? timestamp.slice(0, 10) : undefined;
-}
-
-function versionedFilename(assetName, version) {
-  const dot = assetName.lastIndexOf(".");
-  const stem = dot > 0 ? assetName.slice(0, dot) : assetName;
-  const extension = dot > 0 ? assetName.slice(dot) : "";
-  const firstDigit = version.search(/\d/);
-  const suffix =
-    firstDigit < 0 ? version : `v${firstDigit === 0 ? version : version.slice(firstDigit)}`;
-  return `${stem}_${suffix}${extension}`;
-}
-
-function assetMatcher(source) {
-  if (source.asset_pattern) {
-    const pattern = new RegExp(source.asset_pattern);
-    return (asset) => pattern.test(asset.name);
-  }
-  return (asset) => asset.name === source.asset;
-}
-
-async function resolveSource(source) {
-  const response = await fetch(`${GITHUB_API}/repos/${source.repo}/releases?per_page=30`, {
-    headers: headers(),
-  });
-  if (!response.ok) throw new Error(`${source.repo}: GitHub API returned ${response.status}`);
-
-  const matchesAsset = assetMatcher(source);
-  const releases = await response.json();
-  const match = releases
-    .filter((release) => !release.draft)
-    .map((release) => ({
-      release,
-      asset: release.assets?.find(matchesAsset),
-    }))
-    .find(({ asset }) => Boolean(asset));
-
-  if (!match) throw new Error(`${source.repo}: no non-draft release contains ${source.asset}`);
-
-  const { release, asset } = match;
-  const version = normalizeVersion(release, asset);
-  const payload = {
-    name: source.name,
-    filename: versionedFilename(source.asset, version),
-    url: asset.browser_download_url,
-    source: `https://github.com/${source.repo}/releases`,
-    source_direct: asset.browser_download_url,
-    description: source.description,
-    last_update: lastUpdateDate(release, asset),
-    version,
-    category: source.category,
-  };
-
-  const checksum = checksumFromAsset(asset);
-  if (checksum) payload.checksum = checksum;
-  return payload;
-}
-
-const payloads = await Promise.all(sourcesConfig.sources.map(resolveSource));
-
-await fs.writeFile("payloads.json", JSON.stringify(payloads, null, 2) + "\n");
-console.log(JSON.stringify(payloads, null, 2));
+const manifest = await snapshotManifest(snapshot, token);
+await fs.writeFile("payloads.json", JSON.stringify(manifest, null, 2) + "\n");
+console.log(`synced payloads.json from ${snapshot.tag_name} (${manifest.length} payloads)`);

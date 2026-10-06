@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate.mjs"
+    "generate": "node scripts/generate.mjs",
+    "mirror": "node scripts/mirror.mjs"
   }
 }

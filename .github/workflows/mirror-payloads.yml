@@ -1,4 +1,4 @@
-name: Update static catalog
+name: Mirror payloads
 
 on:
   workflow_dispatch:
@@ -9,18 +9,18 @@ permissions:
   contents: write
 
 jobs:
-  update:
+  mirror:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Generate latest catalog
+      - name: Mirror upstream payloads into a snapshot release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run generate
-      - name: Commit changes
+        run: npm run mirror
+      - name: Commit static catalog
         run: |
           if git diff --quiet -- payloads.json; then
             echo "No catalog changes"
