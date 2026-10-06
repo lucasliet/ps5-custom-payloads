@@ -17,6 +17,8 @@ Live endpoints:
 | Game Compressor | `juma-sayeh/PS5-Game-Compressor` | `game-compressor.elf` | Storage |
 | APR Emu Updater | `tsuramatsu1/apr-emu-updater` | `apr_emu_updater.elf` (+ pattern) | Emulation |
 | WebKit Autoloader | `itsPLK/ps5-webkit-autoloader` | `webkit-autoloader-installer.elf` (+ pattern) | Autoloader |
+| AnyPad | `mistervampi/AnyPad-PS5` | `AnyPad-PS5.elf` (+ pattern) | Controllers |
+| OmniPad | `diegobarbosaa/OmniPad-PS5` | `OmniPad-PS5.elf` (+ pattern) | Controllers |
 
 ## Architecture
 
@@ -116,7 +118,7 @@ The first `fastapi deploy` prompts for login, then for the team and whether to c
 
 Set environment variables **before** deploying: `env set` does not redeploy on its own, so a variable added afterwards only takes effect on the next deploy. Omitting the value makes the CLI prompt for it with hidden input, keeping the token out of your shell history.
 
-`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads `/repos/{owner}/{repo}/releases`. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — five today, and responses are `no-store` — so unauthenticated the endpoint runs dry after about a dozen fetches an hour. It still works without a token for low-volume use.
+`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads `/repos/{owner}/{repo}/releases`. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — eight today, and responses are `no-store` — so unauthenticated the endpoint runs dry after about a dozen fetches an hour. It still works without a token for low-volume use.
 
 `pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against.
 

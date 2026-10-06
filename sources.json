@@ -44,6 +44,22 @@
       "asset_pattern": "^webkit-autoloader-installer(_v[\\d.]+)?\\.elf$",
       "description": "Installer payload that sets up a fully offline WebKit exploit autoloader served from the console itself.",
       "category": "Autoloader"
+    },
+    {
+      "name": "AnyPad",
+      "repo": "mistervampi/AnyPad-PS5",
+      "asset": "AnyPad-PS5.elf",
+      "asset_pattern": "^AnyPad-PS5(-.+)?\\.elf$",
+      "description": "Resident payload that connects DualShock 4, Xbox, Switch Pro, 8BitDo and other Bluetooth gamepads as virtual DualSense controllers.",
+      "category": "Controllers"
+    },
+    {
+      "name": "OmniPad",
+      "repo": "diegobarbosaa/OmniPad-PS5",
+      "asset": "OmniPad-PS5.elf",
+      "asset_pattern": "^OmniPad-PS5(-.+)?\\.elf$",
+      "description": "Universal controller engine with USB/2.4GHz hotplug and a web dashboard for third-party pads on jailbroken PS5s.",
+      "category": "Controllers"
     }
   ]
 }
