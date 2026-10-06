@@ -60,6 +60,13 @@
       "asset_pattern": "^OmniPad-PS5(-.+)?\\.elf$",
       "description": "Universal controller engine with USB/2.4GHz hotplug and a web dashboard for third-party pads on jailbroken PS5s.",
       "category": "Controllers"
+    },
+    {
+      "name": "Orbit Store (Beta)",
+      "repo": "saawant12/orbit-store-ps5",
+      "asset": "orbit_store.elf",
+      "description": "A modern PS5 download manager with a native TV app, resumable downloads and phone controls.",
+      "category": "Utilities"
     }
   ]
 }
