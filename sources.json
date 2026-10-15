@@ -74,6 +74,13 @@
       "asset": "tailscale.elf",
       "description": "Puts a jailbroken PS5 on your Tailscale network: Remote Play from anywhere, Taildrop, and the console's services at its tailnet address.",
       "category": "Utilities"
+    },
+    {
+      "name": "PS4Mount",
+      "repo": "gasb07/ps4mount",
+      "asset": "ps4mount.elf",
+      "description": "Mounts PS4 fake PKGs from a USB drive on jailbroken PS5s without installing to internal storage, with update and add-on support and a web panel.",
+      "category": "Utilities"
     }
   ]
 }

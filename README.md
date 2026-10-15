@@ -21,6 +21,7 @@ Live endpoints:
 | AnyPad | `mistervampi/AnyPad-PS5` | `AnyPad-PS5.elf` (+ pattern) | Utilities |
 | OmniPad | `diegobarbosaa/OmniPad-PS5` | `OmniPad-PS5.elf` (+ pattern) | Utilities |
 | Tailscale | `holdmysocks/ps5-tailscale` | `tailscale.elf` | Utilities |
+| PS4Mount | `gasb07/ps4mount` | `ps4mount.elf` | Utilities |
 
 ## Architecture
 
@@ -129,7 +130,7 @@ The first `fastapi deploy` prompts for login, then for the team and whether to c
 
 Set environment variables **before** deploying: `env set` does not redeploy on its own, so a variable added afterwards only takes effect on the next deploy. Omitting the value makes the CLI prompt for it with hidden input, keeping the token out of your shell history.
 
-`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads release metadata. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — nine today, plus two more only when some source needs the snapshot fallback — and responses are `no-store` — so unauthenticated the endpoint runs dry after a handful of fetches an hour. It still works without a token for low-volume use.
+`GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads release metadata. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — eleven today, plus two more only when some source needs the snapshot fallback — and responses are `no-store` — so unauthenticated the endpoint runs dry after a handful of fetches an hour. It still works without a token for low-volume use.
 
 `pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against.
 
