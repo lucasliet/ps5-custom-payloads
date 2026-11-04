@@ -4,9 +4,9 @@ Custom payload repository for [Payload Manager](https://github.com/itsPLK/ps5-pa
 
 Live endpoints:
 
-- Static (GitHub Pages): `https://lucasliet.github.io/ps5-custom-payloads/payloads.json`
-- Static with icons (pldmgr v0.6+): `https://lucasliet.github.io/ps5-custom-payloads/payloads_v2.json`
-- Dynamic (FastAPI Cloud): `/`, `/payloads.json`, `/payloads_v2.json` and `/icons.json` on the deployed app
+- Static (GitHub Pages), com ícones (pldmgr v0.6+): `https://lucasliet.github.io/ps5-custom-payloads/payloads.json`
+- Static legado, sem ícones (todas as versões): `https://lucasliet.github.io/ps5-custom-payloads/payloads_legacy.json`
+- Dynamic (FastAPI Cloud): `/`, `/payloads.json`, `/payloads_legacy.json` and `/icons.json` on the deployed app
 
 ## Tracked payloads
 
@@ -30,9 +30,9 @@ Live endpoints:
 `sources.json` is the single source of truth: what to track and the metadata shown in the app. The download flow is:
 
 1. **Mirror (CI)** — `scripts/mirror.mjs` (`npm run mirror`) resolves every source against its upstream GitHub Releases, downloads each ELF, and publishes a snapshot release in this repository (tag `mirror-<UTC timestamp>`, e.g. `mirror-20261006031745`) holding one versioned ELF per payload plus a `payloads.json` manifest asset. A GitHub Action runs it daily at `03:17 UTC`, on pushes to `main` that change `sources.json` (including merged PRs), or manually via `workflow_dispatch`. No new snapshot is published when every payload already matches the latest snapshot, so unchanged days produce no releases.
-2. **Icons (CI)** — after the mirror, the same workflow runs `scripts/icons.py` (`npm run icons`). For every source it probes the upstream repository's default branch for the standard PS5 icon locations (`assets/icon0.png`, `assets/icon.png`, `icon0.png`, `icon.png`, `assets/logo.png`, `logo.png`), falls back to the owner's GitHub avatar — the same suggestion order the official mirror uses — and compresses the image (port of the official `icon_utils.py`): SVG passes through when it fits, otherwise 128px PNG, palette-quantized PNG (transparency) or JPEG (opaque), always under the 12,288-character data URI budget PS5 WebKit imposes. It writes `icons.json` (content-addressed: the key is the SHA-256 of the data URI, so identical images share one entry and stale keys are pruned on the next run) and `payloads_v2.json` (the catalog wrapped with `icons_url`, each payload carrying its `icon_key`).
-3. **Static catalog (primary)** — `payloads.json` (bare array) and `payloads_v2.json` (icon wrapper) at the repo root are committed by the mirror run; `icons.json` ships alongside them. GitHub Pages serves all three from `main`. `scripts/generate.mjs` (`npm run generate`) re-syncs `payloads.json` from the latest snapshot without publishing anything, rebuilding `payloads_v2.json` with the icon keys `icons.json` still holds.
-4. **Dynamic endpoint** — `main.py` is a FastAPI app, deployed on [FastAPI Cloud](https://fastapicloud.com), that resolves every source against its upstream GitHub Releases at request time, so a payload published minutes ago is already listed without waiting for the daily mirror. `/payloads_v2.json` serves the icon wrapper (keys re-attached from the committed v2 catalog — no image processing at request time) and `/icons.json` serves the icon data. Only sources the upstream no longer serves are filled in from this repository's newest snapshot release (falling back to the bundled `payloads.json` when the mirror API itself is unreachable). GitHub Pages is static and cannot query the API per request; the app exists for request-time freshness. It also serves FastAPI's interactive docs at `/docs`.
+2. **Icons (CI)** — after the mirror, the same workflow runs `scripts/icons.py` (`npm run icons`). For every source it probes the upstream repository's default branch for the standard PS5 icon locations (`assets/icon0.png`, `assets/icon.png`, `icon0.png`, `icon.png`, `assets/logo.png`, `logo.png`), falls back to the owner's GitHub avatar — the same suggestion order the official mirror uses — and compresses the image (port of the official `icon_utils.py`): SVG passes through when it fits, otherwise 128px PNG, palette-quantized PNG (transparency) or JPEG (opaque), always under the 12,288-character data URI budget PS5 WebKit imposes. It writes `icons.json` (content-addressed: the key is the SHA-256 of the data URI, so identical images share one entry and stale keys are pruned on the next run) and wraps the bare manifest into the default `payloads.json`, each payload carrying its `icon_key`.
+3. **Static catalog (primary)** — `payloads.json` (icon wrapper, the default catalog) and `payloads_legacy.json` (bare array, pre-v0.6 clients) at the repo root are committed by the mirror run; `icons.json` ships alongside them. GitHub Pages serves all three from `main`. `scripts/generate.mjs` (`npm run generate`) re-syncs `payloads_legacy.json` from the latest snapshot without publishing anything, rebuilding the `payloads.json` wrapper with the icon keys `icons.json` still holds.
+4. **Dynamic endpoint** — `main.py` is a FastAPI app, deployed on [FastAPI Cloud](https://fastapicloud.com), that resolves every source against its upstream GitHub Releases at request time, so a payload published minutes ago is already listed without waiting for the daily mirror. `/payloads.json` serves the icon wrapper (keys re-attached from the committed catalog — no image processing at request time), `/payloads_legacy.json` the bare array and `/icons.json` the icon data. Only sources the upstream no longer serves are filled in from this repository's newest snapshot release (falling back to the bundled `payloads_legacy.json` when the mirror API itself is unreachable). GitHub Pages is static and cannot query the API per request; the app exists for request-time freshness. It also serves FastAPI's interactive docs at `/docs`.
 
 `url` and `source_direct` always point at this repository's snapshot releases; every other field keeps the upstream metadata (name, version, description, category, `last_update`, `source`).
 
@@ -56,28 +56,9 @@ For every source in `sources.json`, the mirror run:
 
 ## Catalog schema
 
-Two files describe the same catalog, both a **bare top-level JSON array** payload list plus the v0.6+ icon wrapper:
+Two files describe the same catalog — the default icon wrapper and the legacy bare array:
 
-`payloads.json` (works on every pldmgr version):
-
-```json
-[
-  {
-    "name": "Pegasus DL",
-    "filename": "pegasus_dl_v1.7.0.elf",
-    "url": "https://github.com/lucasliet/ps5-custom-payloads/releases/download/mirror-20261006031745/pegasus_dl_v1.7.0.elf",
-    "source": "https://github.com/pegasus-ps5/pegasus-dl/releases",
-    "source_direct": "https://github.com/lucasliet/ps5-custom-payloads/releases/download/mirror-20261006031745/pegasus_dl_v1.7.0.elf",
-    "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
-    "last_update": "2026-06-24",
-    "version": "v1.7.0",
-    "category": "Downloads",
-    "checksum": "cb2a4b3c..."
-  }
-]
-```
-
-`payloads_v2.json` (same entries plus `icon_key`, wrapped so pldmgr v0.6+ picks up `icons_url`):
+`payloads.json` — the **default catalog**, the object wrapper pldmgr v0.6+ parses for `icons_url`, each payload carrying its `icon_key`:
 
 ```json
 {
@@ -86,18 +67,28 @@ Two files describe the same catalog, both a **bare top-level JSON array** payloa
   "payloads": [
     {
       "name": "Pegasus DL",
-      "...": "...",
+      "filename": "pegasus_dl_v1.7.0.elf",
+      "url": "https://github.com/lucasliet/ps5-custom-payloads/releases/download/mirror-20261006031745/pegasus_dl_v1.7.0.elf",
+      "source": "https://github.com/pegasus-ps5/pegasus-dl/releases",
+      "source_direct": "https://github.com/lucasliet/ps5-custom-payloads/releases/download/mirror-20261006031745/pegasus_dl_v1.7.0.elf",
+      "description": "Direct package downloader for PS5 with a local web interface, catalog sources, queue management and file management.",
+      "last_update": "2026-06-24",
+      "version": "v1.7.0",
+      "category": "Downloads",
+      "checksum": "cb2a4b3c...",
       "icon_key": "36a564c7d0a8..."
     }
   ]
 }
 ```
 
-`icons.json` maps each key to a base64 PNG/JPEG/SVG data URI ≤12,288 characters (square ~128px, never WebP — PS5 WebKit limits). Constraints the daemon enforces: the file must stay under 4 MiB with at most 4,096 keys of ≤127 bytes; malformed values reject the icon update while the last valid cache survives.
+`payloads_legacy.json` — the same entries as a **bare top-level JSON array**, without icon keys, for pldmgr pre-v0.6 (whose parser shadows the first payload's name on the wrapper — see [compatibility](#payload-manager-compatibility)).
 
-This matches the format of the official mirror (`itsplk.github.io/ps5-payloads-mirror`) field for field, including its two-file split: the bare array there is `payloads.json`, the icon wrapper `payloads_v2.json`.
+`icons.json` maps each `icon_key` to a base64 PNG/JPEG/SVG data URI ≤12,288 characters (square ~128px, never WebP — PS5 WebKit limits). Constraints the daemon enforces: the file must stay under 4 MiB with at most 4,096 keys of ≤127 bytes; malformed values reject the icon update while the last valid cache survives.
 
-Use the bare `payloads.json` URL with any app version; use `payloads_v2.json` on pldmgr v0.6.0+ (older releases mis-parse the wrapper and mislabel the first payload — see below).
+This matches the format of the official mirror (`itsplk.github.io/ps5-payloads-mirror`) field for field — there the icon wrapper is called `payloads_v2.json` and the bare array `payloads.json`; the roles are the same.
+
+Use `payloads.json` on pldmgr v0.6.0+ (the current, self-updating app); use `payloads_legacy.json` only for clients stuck on v0.5.x.
 
 ## Payload Manager compatibility
 
@@ -126,7 +117,7 @@ Append an entry to `sources.json`:
 }
 ```
 
-`asset_pattern` is optional (omit it when the asset name never changes). Keep the asset stem free of version-like suffixes (`_v1`, `-2`) so the derived base name stays stable. Commit and push the change to `main` (or merge a PR): the mirror workflow automatically publishes the snapshot, extracts the payload's icon and commits the regenerated catalogs. Then force-refresh the source in the app. For a local preview without publishing anything, use `DRY_RUN=1 npm run mirror`; to publish locally, use `npm run mirror` and commit the regenerated `payloads.json`.
+`asset_pattern` is optional (omit it when the asset name never changes). Keep the asset stem free of version-like suffixes (`_v1`, `-2`) so the derived base name stays stable. Commit and push the change to `main` (or merge a PR): the mirror workflow automatically publishes the snapshot, extracts the payload's icon and commits the regenerated catalogs. Then force-refresh the source in the app. For a local preview without publishing anything, use `DRY_RUN=1 npm run mirror`; to publish locally, use `npm run mirror` and commit the regenerated catalogs.
 
 The icon is automatic: the mirror probes the repository's default branch for `assets/icon0.png`, `assets/icon.png`, `icon0.png`, `icon.png`, `assets/logo.png` and `logo.png`, then falls back to the owner's GitHub avatar. Set `"icon"` on the source to override that — an `@owner` handle, a GitHub image URL (profile or blob), a direct URL or a `data:image/...;base64,...` URI all work.
 
@@ -137,14 +128,14 @@ Categories are free-form strings (custom categories are supported since the app'
 ### Static catalog and mirror
 
 ```bash
-npm run mirror   # resolve upstream, publish a snapshot release, rewrite payloads.json
-npm run generate # read-only: re-sync payloads.json and payloads_v2.json from the latest snapshot
-npm run icons    # re-extract icons from upstream repos into icons.json + payloads_v2.json
+npm run mirror   # resolve upstream, publish a snapshot release, rewrite payloads_legacy.json
+npm run generate # read-only: re-sync payloads.json and payloads_legacy.json from the latest snapshot
+npm run icons    # re-extract icons from upstream repos into icons.json + the payloads.json wrapper
 ```
 
 `npm run icons` runs `scripts/icons.py` through uv with the `icons` dependency group (Pillow). Plain `python scripts/icons.py` works too with Pillow installed. The script never fails on a single bad image: it warns and leaves that payload to the app's generated fallback icon.
 
-The `Mirror payloads` Action (`.github/workflows/mirror-payloads.yml`) runs daily at `03:17 UTC`, on pushes to `main` that change `sources.json`, or manually via `workflow_dispatch`. It runs `npm test`, mirrors a snapshot (`npm run mirror`), extracts icons (`python scripts/icons.py`, Pillow via `setup-python`), and commits `payloads.json`, `payloads_v2.json` and `icons.json` when any changed. Pushes that only change the generated files or unrelated files do not trigger the mirror. It uses the built-in `GITHUB_TOKEN` (needs `contents: write` to publish/prune snapshot releases), publishes a new snapshot only when something changed, and skips the commit when nothing did. GitHub Pages publishes `main` automatically.
+The `Mirror payloads` Action (`.github/workflows/mirror-payloads.yml`) runs daily at `03:17 UTC`, on pushes to `main` that change `sources.json`, or manually via `workflow_dispatch`. It runs `npm test`, mirrors a snapshot (`npm run mirror`), extracts icons (`python scripts/icons.py`, Pillow via `setup-python`), and commits `payloads.json`, `payloads_legacy.json` and `icons.json` when any changed. Pushes that only change the generated files or unrelated files do not trigger the mirror. It uses the built-in `GITHUB_TOKEN` (needs `contents: write` to publish/prune snapshot releases), publishes a new snapshot only when something changed, and skips the commit when nothing did. GitHub Pages publishes `main` automatically.
 
 ### Dynamic endpoint
 
@@ -166,7 +157,7 @@ Set environment variables **before** deploying: `env set` does not redeploy on i
 
 `GITHUB_TOKEN` needs **no scopes at all** — every tracked repository is public and the app only reads release metadata. Create a classic token with nothing checked, or a fine-grained one with no permissions (those already carry read-only access to public repositories). Scopes do not affect rate limits; authenticating is what raises the ceiling from 60 to 5,000 requests/hour. Each catalog request costs one API call per source — twelve today, plus two more only when some source needs the snapshot fallback — and responses are `no-store` — so unauthenticated the endpoint runs dry after a handful of fetches an hour. It still works without a token for low-volume use.
 
-`/payloads_v2.json` and `/icons.json` serve the icon wrapper and the icon data; the icon keys come from the committed `payloads_v2.json`, so after changing icons **remember to redeploy** (pushing refreshes Pages immediately, the deployed app does not).
+`/payloads.json` (icon wrapper), `/payloads_legacy.json` (bare array) and `/icons.json` (icon data) mirror the static files; the icon keys come from the committed catalog, so after changing icons **remember to redeploy** (pushing refreshes Pages immediately, the deployed app does not).
 
 `pyproject.toml` declares the dependencies and the entrypoint (`main:app`); together with `.python-version` it tells FastAPI Cloud which Python to build against.
 

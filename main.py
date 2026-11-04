@@ -1,11 +1,14 @@
 """Request-time payload catalog API, deployed on FastAPI Cloud.
 
-GitHub Pages serves the daily `payloads.json` snapshot; this app resolves
-every source against its upstream GitHub Releases on each request, so a
-payload published minutes ago is already listed. Sources the upstream no
-longer serves are filled in from this repository's newest `mirror-*`
-snapshot release (falling back to the bundled `payloads.json`), so the
-catalog stays up even when an upstream repository disappears.
+The default `/payloads.json` (and `/`) serves the object-wrapper catalog
+pldmgr v0.6+ parses for icons; `/payloads_legacy.json` serves the bare array
+older clients expect. GitHub Pages serves the daily snapshot of both; this
+app resolves every source against its upstream GitHub Releases on each
+request, so a payload published minutes ago is already listed. Sources the
+upstream no longer serves are filled in from this repository's newest
+`mirror-*` snapshot release (falling back to the bundled
+`payloads_legacy.json`), so the catalog stays up even when an upstream
+repository disappears.
 """
 
 from __future__ import annotations
@@ -31,8 +34,8 @@ MANIFEST_ASSET = "payloads.json"
 RELEASES_PER_PAGE = 30
 REQUEST_TIMEOUT = 10.0
 
+BUNDLED_LEGACY_CATALOG_PATH = Path(__file__).resolve().parent / "payloads_legacy.json"
 BUNDLED_CATALOG_PATH = Path(__file__).resolve().parent / "payloads.json"
-V2_CATALOG_PATH = Path(__file__).resolve().parent / "payloads_v2.json"
 ICONS_PATH = Path(__file__).resolve().parent / "icons.json"
 SOURCES_PATH = Path(__file__).resolve().parent / "sources.json"
 
@@ -55,19 +58,19 @@ def catalog_label() -> str:
 
 
 def load_bundled_icon_keys() -> dict[str, str]:
-    """icon_key per payload name from the committed payloads_v2.json.
+    """icon_key per payload name from the committed default catalog.
 
     Icon bytes are produced by scripts/icons.py (Pillow) at mirror time; the
     API only re-attaches the content-addressed keys to freshly resolved
     entries, so no image processing happens at request time.
     """
     try:
-        v2 = json.loads(V2_CATALOG_PATH.read_text(encoding="utf-8"))
+        catalog = json.loads(BUNDLED_CATALOG_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
     return {
         payload["name"]: payload["icon_key"]
-        for payload in v2.get("payloads", [])
+        for payload in catalog.get("payloads", [])
         if isinstance(payload, dict) and payload.get("name") and payload.get("icon_key")
     }
 
@@ -175,7 +178,7 @@ async def resolve_source(client: httpx.AsyncClient, source: Source) -> PayloadEn
 
 def load_bundled_catalog() -> list[PayloadEntry]:
     """The last snapshot manifest committed to the repo (pre-mirror fallback)."""
-    catalog = json.loads(BUNDLED_CATALOG_PATH.read_text(encoding="utf-8"))
+    catalog = json.loads(BUNDLED_LEGACY_CATALOG_PATH.read_text(encoding="utf-8"))
     if not isinstance(catalog, list):
         raise CatalogError("bundled payloads.json is not an array")
     return catalog
@@ -261,7 +264,7 @@ async def build_catalog() -> list[PayloadEntry]:
 
 app = FastAPI(
     title="PS5 Custom Payloads",
-    description="Payload Manager catalog resolved from upstream GitHub Releases at request time, with snapshot fallback. /payloads_v2.json + /icons.json add dashboard icons (pldmgr v0.6+).",
+    description="Payload Manager catalog resolved from upstream GitHub Releases at request time, with snapshot fallback. /payloads.json serves the icon wrapper (pldmgr v0.6+); /payloads_legacy.json the bare array; /icons.json the icon data.",
     version="1.1.0",
 )
 
@@ -306,24 +309,11 @@ async def error_response(request: Request, exc: HTTPException) -> Response:
 @app.api_route("/", methods=["GET", "HEAD"])
 @app.api_route("/payloads.json", methods=["GET", "HEAD"])
 async def payload_catalog() -> Response:
-    """The catalog as a bare JSON array, ready to be added as a Payload Manager source."""
-    try:
-        catalog = await build_catalog()
-    except Exception as error:  # mirror and bundled fallback both failed
-        return json_response(
-            {"error": "Failed to build payload catalog", "detail": str(error)},
-            502,
-        )
-    return json_response(catalog)
-
-
-@app.api_route("/payloads_v2.json", methods=["GET", "HEAD"])
-async def payload_catalog_v2() -> Response:
-    """The same catalog in the object wrapper pldmgr v0.6+ parses for
+    """The default catalog: the object wrapper pldmgr v0.6+ parses for
     `icons_url`, with each payload's icon_key re-attached."""
     try:
         catalog = await build_catalog()
-    except Exception as error:
+    except Exception as error:  # mirror and bundled fallback both failed
         return json_response(
             {"error": "Failed to build payload catalog", "detail": str(error)},
             502,
@@ -336,6 +326,19 @@ async def payload_catalog_v2() -> Response:
         for entry in catalog
     ]
     return json_response({"name": catalog_label(), "icons_url": "icons.json", "payloads": payloads})
+
+
+@app.api_route("/payloads_legacy.json", methods=["GET", "HEAD"])
+async def payload_catalog_legacy() -> Response:
+    """The same catalog as a bare JSON array for pre-v0.6 Payload Manager clients."""
+    try:
+        catalog = await build_catalog()
+    except Exception as error:
+        return json_response(
+            {"error": "Failed to build payload catalog", "detail": str(error)},
+            502,
+        )
+    return json_response(catalog)
 
 
 @app.api_route("/icons.json", methods=["GET", "HEAD"])

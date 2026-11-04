@@ -178,6 +178,6 @@ export function withIconKey(entry, iconKey) {
 }
 
 /** The object-wrapper catalog pldmgr v0.6+ parses for `icons_url`. */
-export function buildV2Catalog(name, payloads) {
+export function buildIconCatalog(name, payloads) {
   return { name, icons_url: "icons.json", payloads };
 }

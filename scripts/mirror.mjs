@@ -215,8 +215,10 @@ await uploadAsset(release.id, MANIFEST_ASSET, manifestBytes, "application/json")
 console.log(`uploaded ${MANIFEST_ASSET}`);
 
 // 4. Point the static catalog at the new snapshot and prune old snapshots.
-await fs.writeFile("payloads.json", manifestBytes);
-console.log("wrote payloads.json");
+// The bare manifest is the legacy file; scripts/icons.py wraps it (with
+// icons) into the default payloads.json.
+await fs.writeFile("payloads_legacy.json", manifestBytes);
+console.log("wrote payloads_legacy.json");
 
 // The replaced stale release (same tag) is already gone; exclude it so the
 // prune pass never issues a second DELETE for it.

@@ -9,15 +9,19 @@ WebKit can decode (PNG/JPEG/SVG only, no WebP).
 
 Writes, at the repository root:
 
-- icons.json       {"icons": {sha256(data_uri): data_uri}} - content-addressed,
-                   the same scheme as the official mirror (keys are the SHA-256
-                   of the data URI, so identical images share one entry and
-                   unreferenced entries disappear on the next run).
-- payloads_v2.json the catalog in the object-wrapper form pldmgr v0.6+ expects
-                   for icons: {"name", "icons_url": "icons.json", "payloads":
-                   [...]} with an icon_key added to every payload that got one.
-                   The bare payloads.json stays untouched so v0.5.x clients
-                   keep working (their parser mishandles the wrapper).
+- icons.json            {"icons": {sha256(data_uri): data_uri}} - content-
+                        addressed, the same scheme as the official mirror
+                        (keys are the SHA-256 of the data URI, so identical
+                        images share one entry and unreferenced entries
+                        disappear on the next run).
+- payloads.json         the default catalog served to the app, in the object
+                        wrapper pldmgr v0.6+ parses for icons: {"name",
+                        "icons_url": "icons.json", "payloads": [...]} with an
+                        icon_key added to every payload that got one.
+
+Reads payloads_legacy.json, the bare manifest the mirror run writes. That
+bare array stays untouched so v0.5.x clients keep working (their parser
+mishandles the wrapper).
 
 Run with `npm run icons` (uv) or `python scripts/icons.py` (needs Pillow).
 A payload whose icon cannot be resolved is skipped with a warning; the run
@@ -39,8 +43,8 @@ from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES_PATH = ROOT / "sources.json"
+LEGACY_CATALOG_PATH = ROOT / "payloads_legacy.json"
 CATALOG_PATH = ROOT / "payloads.json"
-V2_CATALOG_PATH = ROOT / "payloads_v2.json"
 ICONS_PATH = ROOT / "icons.json"
 
 MAX_ICON_BYTES = 12_000  # compression target (< 12,288 hard backend limit)
@@ -277,24 +281,24 @@ def main() -> None:
 
     write_json(ICONS_PATH, {"icons": dict(sorted(icons.items()))})
 
-    payloads_v2 = []
-    if CATALOG_PATH.exists():
-        catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
-        if not isinstance(catalog, list):
-            raise SystemExit("payloads.json is not a bare catalog array")
-        for entry in catalog:
+    payloads = []
+    if LEGACY_CATALOG_PATH.exists():
+        legacy = json.loads(LEGACY_CATALOG_PATH.read_text(encoding="utf-8"))
+        if not isinstance(legacy, list):
+            raise SystemExit("payloads_legacy.json is not a bare catalog array")
+        for entry in legacy:
             key = keys_by_name.get(entry.get("name"))
-            payloads_v2.append({**entry, **({"icon_key": key} if key else {})})
+            payloads.append({**entry, **({"icon_key": key} if key else {})})
     else:
-        print("warning: payloads.json not found; writing icons without the v2 catalog", file=sys.stderr)
+        print("warning: payloads_legacy.json not found; writing icons without the catalog", file=sys.stderr)
 
     write_json(
-        V2_CATALOG_PATH,
-        {"name": config.get("name"), "icons_url": "icons.json", "payloads": payloads_v2},
+        CATALOG_PATH,
+        {"name": config.get("name"), "icons_url": "icons.json", "payloads": payloads},
     )
     print(
-        f"wrote icons.json ({len(icons)} icons) and payloads_v2.json "
-        f"({sum(1 for p in payloads_v2 if 'icon_key' in p)}/{len(payloads_v2)} with icons)"
+        f"wrote icons.json ({len(icons)} icons) and payloads.json "
+        f"({sum(1 for p in payloads if 'icon_key' in p)}/{len(payloads)} with icons)"
     )
 
 
