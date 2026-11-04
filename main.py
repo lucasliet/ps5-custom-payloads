@@ -32,6 +32,8 @@ RELEASES_PER_PAGE = 30
 REQUEST_TIMEOUT = 10.0
 
 BUNDLED_CATALOG_PATH = Path(__file__).resolve().parent / "payloads.json"
+V2_CATALOG_PATH = Path(__file__).resolve().parent / "payloads_v2.json"
+ICONS_PATH = Path(__file__).resolve().parent / "icons.json"
 SOURCES_PATH = Path(__file__).resolve().parent / "sources.json"
 
 Release = dict[str, Any]
@@ -46,6 +48,28 @@ class CatalogError(RuntimeError):
 
 def load_sources() -> list[Source]:
     return json.loads(SOURCES_PATH.read_text(encoding="utf-8"))["sources"]
+
+
+def catalog_label() -> str:
+    return json.loads(SOURCES_PATH.read_text(encoding="utf-8")).get("name") or "Payloads"
+
+
+def load_bundled_icon_keys() -> dict[str, str]:
+    """icon_key per payload name from the committed payloads_v2.json.
+
+    Icon bytes are produced by scripts/icons.py (Pillow) at mirror time; the
+    API only re-attaches the content-addressed keys to freshly resolved
+    entries, so no image processing happens at request time.
+    """
+    try:
+        v2 = json.loads(V2_CATALOG_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {
+        payload["name"]: payload["icon_key"]
+        for payload in v2.get("payloads", [])
+        if isinstance(payload, dict) and payload.get("name") and payload.get("icon_key")
+    }
 
 
 def github_headers() -> dict[str, str]:
@@ -237,8 +261,8 @@ async def build_catalog() -> list[PayloadEntry]:
 
 app = FastAPI(
     title="PS5 Custom Payloads",
-    description="Payload Manager catalog resolved from upstream GitHub Releases at request time, with snapshot fallback.",
-    version="1.0.0",
+    description="Payload Manager catalog resolved from upstream GitHub Releases at request time, with snapshot fallback. /payloads_v2.json + /icons.json add dashboard icons (pldmgr v0.6+).",
+    version="1.1.0",
 )
 
 CATALOG_HEADERS = {
@@ -291,3 +315,34 @@ async def payload_catalog() -> Response:
             502,
         )
     return json_response(catalog)
+
+
+@app.api_route("/payloads_v2.json", methods=["GET", "HEAD"])
+async def payload_catalog_v2() -> Response:
+    """The same catalog in the object wrapper pldmgr v0.6+ parses for
+    `icons_url`, with each payload's icon_key re-attached."""
+    try:
+        catalog = await build_catalog()
+    except Exception as error:
+        return json_response(
+            {"error": "Failed to build payload catalog", "detail": str(error)},
+            502,
+        )
+    icon_keys = load_bundled_icon_keys()
+    payloads = [
+        {**entry, "icon_key": icon_keys[entry["name"]]}
+        if entry.get("name") in icon_keys
+        else entry
+        for entry in catalog
+    ]
+    return json_response({"name": catalog_label(), "icons_url": "icons.json", "payloads": payloads})
+
+
+@app.api_route("/icons.json", methods=["GET", "HEAD"])
+async def payload_icons() -> Response:
+    """The content-addressed icon catalog: sha256(data URI) -> data URI."""
+    try:
+        content = ICONS_PATH.read_text(encoding="utf-8")
+    except OSError:
+        content = json.dumps({"icons": {}}) + "\n"
+    return Response(content=content, headers=CATALOG_HEADERS)

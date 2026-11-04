@@ -8,5 +8,10 @@ dependencies = [
     "httpx>=0.28.1",
 ]
 
+[dependency-groups]
+icons = [
+    "pillow>=11",
+]
+
 [tool.fastapi]
 entrypoint = "main:app"

@@ -171,3 +171,13 @@ export function snapshotsToPrune(allReleases, keep = SNAPSHOTS_TO_KEEP) {
 export function snapshotTag(now = new Date()) {
   return `${MIRROR_PREFIX}${now.toISOString().replace(/\D/g, "").slice(0, 14)}`;
 }
+
+/** Entry copy with the icon catalog key attached when one was resolved. */
+export function withIconKey(entry, iconKey) {
+  return iconKey ? { ...entry, icon_key: iconKey } : { ...entry };
+}
+
+/** The object-wrapper catalog pldmgr v0.6+ parses for `icons_url`. */
+export function buildV2Catalog(name, payloads) {
+  return { name, icons_url: "icons.json", payloads };
+}

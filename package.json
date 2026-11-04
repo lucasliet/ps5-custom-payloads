@@ -5,6 +5,7 @@
   "scripts": {
     "generate": "node scripts/generate.mjs",
     "mirror": "node scripts/mirror.mjs",
+    "icons": "uv run --group icons python scripts/icons.py",
     "test": "node --test scripts/*.test.mjs"
   }
 }

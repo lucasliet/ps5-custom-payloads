@@ -16,6 +16,13 @@
       "category": "Stores"
     },
     {
+      "name": "RecompStore",
+      "repo": "elripalda/RecompStore",
+      "asset": "RecompStore-Installer.elf",
+      "description": "The free homebrew app store for jailbroken PS5, installing and updating recompiled game ports, emulators, apps and tools from the console.",
+      "category": "Stores"
+    },
+    {
       "name": "OnionHEN",
       "repo": "aydencharles/onionHEN",
       "asset": "OnionHEN.elf",

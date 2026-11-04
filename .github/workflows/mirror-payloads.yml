@@ -21,20 +21,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install icon tooling
+        run: pip install pillow
       - name: Test mirror helpers
         run: npm test
       - name: Mirror upstream payloads into a snapshot release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run mirror
+      - name: Extract payload icons
+        run: python scripts/icons.py
       - name: Commit static catalog
         run: |
-          if git diff --quiet -- payloads.json; then
+          if git diff --quiet -- payloads.json payloads_v2.json icons.json; then
             echo "No catalog changes"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add payloads.json
+          git add payloads.json payloads_v2.json icons.json
           git commit -m "Update payload catalog"
           git push

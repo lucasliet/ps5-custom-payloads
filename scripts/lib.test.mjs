@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { downloadBytes, snapshotManifest } from "./lib.mjs";
+import { buildV2Catalog, downloadBytes, snapshotManifest, withIconKey } from "./lib.mjs";
 
 const asset = {
   name: "payloads.json",
@@ -67,4 +67,36 @@ test("asset download failures remain fatal and include the HTTP status", async (
 
   await assert.rejects(downloadBytes(asset.url, "test-token"), /download returned 404/);
   await assert.rejects(snapshotManifest(snapshot, "test-token"), /download returned 404/);
+});
+
+test("v2 wrapper points at icons.json and keeps entry order", () => {
+  const catalog = buildV2Catalog("My Payloads", [
+    { name: "A", filename: "a_v1.elf" },
+    { name: "B", filename: "b_v1.elf" },
+  ]);
+
+  assert.deepEqual(catalog, {
+    name: "My Payloads",
+    icons_url: "icons.json",
+    payloads: [
+      { name: "A", filename: "a_v1.elf" },
+      { name: "B", filename: "b_v1.elf" },
+    ],
+  });
+});
+
+test("icon keys attach as icon_key and omit cleanly when unresolved", () => {
+  const withKey = withIconKey({ name: "A", checksum: "ff" }, "abc123");
+  assert.deepEqual(withKey, { name: "A", checksum: "ff", icon_key: "abc123" });
+
+  const withoutKey = withIconKey({ name: "A", checksum: "ff" }, undefined);
+  assert.deepEqual(withoutKey, { name: "A", checksum: "ff" });
+  assert.equal("icon_key" in withoutKey, false);
+});
+
+test("icon keys never mutate the original entry", () => {
+  const entry = { name: "A" };
+  withIconKey(entry, "abc123");
+
+  assert.deepEqual(entry, { name: "A" });
 });

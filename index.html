@@ -177,9 +177,15 @@
         <span id="catalog-url">https://lucasliet.github.io/ps5-custom-payloads/payloads.json</span>
         <button class="btn-icon" id="copy-inline" type="button">copiar</button>
       </div>
+      <div class="label">/// Fonte com ícones — pldmgr v0.6+</div>
+      <div class="urlbox">
+        <span id="catalog-url-v2">https://lucasliet.github.io/ps5-custom-payloads/payloads_v2.json</span>
+        <button class="btn-icon" id="copy-inline-v2" type="button">copiar</button>
+      </div>
       <div class="actions">
         <button class="btn btn-primary" id="copy-main" type="button">Copiar URL</button>
         <a class="btn btn-ghost" href="./payloads.json">Abrir payloads.json ↗</a>
+        <a class="btn btn-ghost" href="./payloads_v2.json">Abrir payloads_v2.json ↗</a>
       </div>
     </div>
 
@@ -196,24 +202,28 @@
   </footer>
 
   <script>
-    const URL = document.getElementById("catalog-url").textContent.trim();
-    async function copyUrl(btn, doneLabel) {
-      try {
-        await navigator.clipboard.writeText(URL);
-      } catch {
-        const ta = document.createElement("textarea");
-        ta.value = URL;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-      }
-      const original = btn.textContent;
-      btn.textContent = doneLabel;
-      setTimeout(() => { btn.textContent = original; }, 2000);
+    function copyText(text, btn, doneLabel) {
+      return async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        const original = btn.textContent;
+        btn.textContent = doneLabel;
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      };
     }
-    document.getElementById("copy-main").addEventListener("click", (e) => copyUrl(e.currentTarget, "Copiado ✓"));
-    document.getElementById("copy-inline").addEventListener("click", (e) => copyUrl(e.currentTarget, "ok ✓"));
+    const URL = document.getElementById("catalog-url").textContent.trim();
+    const URL_V2 = document.getElementById("catalog-url-v2").textContent.trim();
+    document.getElementById("copy-main").addEventListener("click", copyText(URL, document.getElementById("copy-main"), "Copiado ✓"));
+    document.getElementById("copy-inline").addEventListener("click", copyText(URL, document.getElementById("copy-inline"), "ok ✓"));
+    document.getElementById("copy-inline-v2").addEventListener("click", copyText(URL_V2, document.getElementById("copy-inline-v2"), "ok ✓"));
     fetch("./payloads.json", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((catalog) => {
