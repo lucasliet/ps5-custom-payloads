@@ -88,6 +88,21 @@
       "asset": "ps4mount.elf",
       "description": "Mounts PS4 fake PKGs from a USB drive on jailbroken PS5s without installing to internal storage, with update and add-on support and a web panel.",
       "category": "Utilities"
+    },
+    {
+      "name": "Dump Forge",
+      "repo": "quer3q/ps5-dump-forge",
+      "asset": "ps5-dump-forge-ps5.elf",
+      "asset_pattern": "^ps5-dump-forge(-.+)?-ps5\\.elf$",
+      "description": "Converts and edits PS5 game dumps in any format (folders, exFAT, ffpkg, FPKG), packs zstd/LZ4 and installs PKGs, from a web UI on the console.",
+      "category": "Utilities"
+    },
+    {
+      "name": "Kraken Mount",
+      "repo": "quer3q/kraken-mount",
+      "asset": "kraken-mount.elf",
+      "description": "Minimalist game mounter that registers debug PKGs and folder dumps — plain or packed with zstd/LZ4 — from the internal SSD, M.2 and USB drives on the home screen without installing them.",
+      "category": "Utilities"
     }
   ]
 }
